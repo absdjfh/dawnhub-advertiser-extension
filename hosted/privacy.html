@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Privacy policy for the Dawnhub Advertiser Tools Chrome extension.">
+    <link rel="canonical" href="https://dawn-adv-tools.rolich.net/privacy.html">
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="stylesheet" href="privacy.css">
+    <title>Dawnhub Advertiser Tools Privacy Policy</title>
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="index.html"><img src="icon.svg" alt=""><span>Dawnhub Advertiser Tools</span></a>
+    <nav aria-label="Site navigation">
+        <a href="index.html">Home</a>
+        <a href="downloads.html">Downloads</a>
+        <a href="guide.html">User guide</a>
+        <a class="active" href="privacy.html">Privacy policy</a>
+    </nav>
+</header>
+<main>
+    <h1>Privacy Policy for Dawnhub Advertiser Tools</h1>
+    <p><strong>Last updated: September 26, 2026</strong></p>
+
+    <p>Dawnhub Advertiser Tools is a Chrome extension that adds tools for advertisers to the
+        <a href="https://hub.dawn-boosting.com">Dawnhub website</a>. This policy explains what information the
+        extension accesses, what it does with it, where it is kept, and who it is shared with. Where only one of the
+        extension's tools uses something, the policy names that tool.</p>
+
+    <h2>Summary</h2>
+    <ul>
+        <li>The extension talks to one service: Dawnhub itself, using your existing Dawnhub session.</li>
+        <li>Anything you paste into the extension, such as a screenshot or message, is processed entirely on your
+            device and never uploaded.</li>
+        <li>There is no Dawnhub Advertiser Tools server. The extension collects no analytics, shows no ads, and sells
+            nothing.</li>
+    </ul>
+
+    <h2>Information the extension accesses</h2>
+    <h3>Dawnhub data</h3>
+    <p>On Dawnhub pages, the extension reads the page and loads data from Dawnhub's API with your existing Dawnhub
+        session. It only uses data your account can already see on Dawnhub, and only to provide its tools:</p>
+    <ul>
+        <li><strong>The raids you are viewing:</strong> dates, raid names, difficulty, loot type, slots, which classes
+            are booked, and status. Used to filter the raids list, link raids, and match a DM to a raid.</li>
+        <li><strong>A single raid's details,</strong> when you are on that raid's page.</li>
+        <li><strong>Bookings</strong> (name-realm, advertiser, class, pot, deposit, paid status and source), when you
+            use <em>Find a buyer</em>, to show where a character is booked.</li>
+    </ul>
+
+    <h3>Content you paste into the extension</h3>
+    <p><em>Fill booking from a DM</em> reads a message from a buyer that you paste or drop in (such as a Discord or
+        Battle.net DM or an in-game whisper), as a screenshot or as message text, to find the raid being discussed and the buyer's details. That can include whatever the
+        conversation shows: names, display names, message text and timestamps.</p>
+    <ul>
+        <li>A screenshot is turned into text by an OCR engine (Tesseract) that ships inside the extension. Nothing
+            is downloaded to do this, and the image is not sent anywhere.</li>
+        <li>That text is then read by Chrome's built-in AI (the Prompt API, running Gemini Nano). The model runs on
+            your device, and Chrome does not send the text anywhere to answer.</li>
+        <li>What was read is compared against the raids on your Dawnhub page, also on your device.</li>
+        <li>The pasted content is kept in memory only while the window is open, and is discarded when you close it.
+            It is not saved to disk by the extension.</li>
+        <li>To help you check a result, the extension writes the text it read and what it found to your browser's
+            developer console for that page. That output stays in your browser and is cleared when the page is
+            closed or reloaded.</li>
+    </ul>
+
+    <h3>What you enter into Dawnhub's forms</h3>
+    <p>Where a tool fills something in for you, such as the raid, Name-Realm, Pot and curve boss for a booking, it
+        fills it into Dawnhub's own form on your page and may click Dawnhub's own buttons, such as its character search. The
+        extension never submits a form. Information is only sent to Dawnhub when you submit Dawnhub's form yourself.</p>
+
+    <h2>How information is shared</h2>
+    <h3>Dawnhub</h3>
+    <p>The extension sends read requests to Dawnhub to load the data described above. Beyond that, Dawnhub only
+        receives what you submit through its own forms, and anything its own buttons send when the extension clicks
+        them for you.</p>
+    <h3>Google Chrome</h3>
+    <p>Tools that use Chrome's built-in AI rely on a model Chrome downloads once, the first time it is needed. That
+        download is handled by Chrome itself under <a href="https://policies.google.com/privacy">Google's privacy
+        policy</a>. The model processes prompts on your device. The extension does not use any Google service over
+        the network.</p>
+    <h3>No one else</h3>
+    <p>The extension does not send any information to its author, to this website, or to any other third party.</p>
+
+    <h2>Storage and retention</h2>
+    <p>In the extension's local storage, kept until you change it or uninstall the extension:</p>
+    <ul>
+        <li><strong>Your settings,</strong> such as the "Show only raids with slots available" tick.</li>
+    </ul>
+    <p>In the extension's session storage, which the browser keeps in memory only and clears when it closes:</p>
+    <ul>
+        <li><strong>The booking fields you confirm</strong> (raid, Name-Realm, Pot and curve boss), for a moment when
+            you choose <em>Open &amp; fill</em>, so they can be filled in once the new tab's booking page loads. They
+            are removed as soon as that tab has used them, or when it is closed.</li>
+    </ul>
+    <p>In the Dawnhub tab's session storage, cleared when the tab is closed:</p>
+    <ul>
+        <li><strong>The address of the raids list you last viewed</strong> (its dates, raid type and region), so
+            <em>Fill booking from a DM</em> can offer those raids on a raid's own page.</li>
+    </ul>
+    <p>The Dawnhub tab's session storage belongs to the Dawnhub website, which means Dawnhub's own pages can
+        technically read it. You can remove everything the extension stores by uninstalling it.</p>
+
+    <h2>Permissions</h2>
+    <ul>
+        <li><strong>Access to hub.dawn-boosting.com</strong> (and Dawn's devhub test site): to add the extension's
+            tools to Dawnhub pages, read the data described above, and fill in Dawnhub's forms.</li>
+        <li><strong>Storage</strong>: to remember your settings.</li>
+    </ul>
+
+    <h2>This website</h2>
+    <p>This website is a static site hosted on Cloudflare. As with any website, the host may receive standard
+        connection information such as your IP address, browser user agent and the page requested. The site uses
+        no cookies, analytics or trackers, and the extension does not contact it unless you open one of its links.
+        Chrome Web Store installs and updates are handled by Google.</p>
+
+    <h2>Chrome Web Store User Data Policy</h2>
+    <p>The use of information described here complies with the
+        <a href="https://developer.chrome.com/docs/webstore/program-policies/user-data-faq">Chrome Web Store User
+            Data Policy</a>, including its Limited Use requirements. Information is used only to provide the
+        extension's features, is not sold or transferred to third parties, and is not used for advertising,
+        creditworthiness or lending purposes.</p>
+
+    <h2>Changes to this policy</h2>
+    <p>We may update this policy when the extension's features or data practices change. The date at the top of this
+        page shows when it was last updated.</p>
+
+    <h2>Contact</h2>
+    <p>For questions about this policy, contact Dzmitry Rolich at
+        <a href="mailto:rolich.dmitry@gmail.com">rolich.dmitry@gmail.com</a>.</p>
+</main>
+</body>
+</html>

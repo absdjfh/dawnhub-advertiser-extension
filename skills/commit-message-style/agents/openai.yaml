@@ -1,0 +1,4 @@
+interface:
+  display_name: "Commit Message Style"
+  short_description: "Match Dawnhub commit message style"
+  default_prompt: "Use $commit-message-style to propose a commit message for the current uncommitted changes."

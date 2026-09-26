@@ -1,0 +1,253 @@
+name: Release
+
+run-name: >-
+  Release (${{ inputs.dryRun && 'dry run' || 'PRODUCTION' }})
+  from ${{ inputs.sourceSha || 'the origin/master tip' }}
+
+# A manual dispatch only has to answer the one question a human actually
+# decides. The version is not one of them: it is the calendar year, month, and
+# the release's position in that month, derived from the run clock. The two
+# identifiers below stay available for a bot dispatch, which derives them from
+# the approved pull request rather than from this run.
+on:
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: Dry run - validate, version, verify, build, and package with no production changes
+        required: true
+        default: true
+        type: boolean
+      sourceSha:
+        description: 'Advanced: exact origin/master commit to release. Blank uses the current tip.'
+        required: false
+        default: ''
+        type: string
+      releaseIntentId:
+        description: 'Advanced: reconciliation intent ID. Blank uses run-<this run ID>.'
+        required: false
+        default: ''
+        type: string
+
+# contents:write is required only for the guarded production pushes of master,
+# version/intent tags, and hosted files. The Chrome Web Store uses its own
+# secrets, and the result artifact needs no additional GitHub token permission.
+permissions:
+  contents: write
+
+# Every production run shares one non-cancelling group. Dry runs use their own
+# run-scoped groups and cannot hold or interrupt the irreversible release lane.
+concurrency:
+  group: ${{ inputs.dryRun && format('extension-release-dry-run-{0}', github.run_id) || 'extension-release-production' }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      # RELEASE_SOURCE_SHA, RELEASE_INTENT_ID, and RELEASE_DATE are intentionally
+      # absent here: the resolve step writes them to the environment file, and a
+      # job-level entry of the same name would take precedence and discard the
+      # result.
+      RELEASE_INPUT_SOURCE_SHA: ${{ inputs.sourceSha }}
+      RELEASE_INPUT_INTENT_ID: ${{ inputs.releaseIntentId }}
+      RELEASE_DRY_RUN: ${{ inputs.dryRun }}
+      RELEASE_PROFILE: full
+      RELEASE_RESULT_PATH: .output/release-result.json
+      RELEASE_TRIGGER_REF: ${{ github.ref }}
+      RELEASE_WORKFLOW_REF: ${{ github.workflow_ref }}
+      GITHUB_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Check out authoritative branch with full history and tags
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/release/package-lock.json
+
+      - name: Initialize machine-readable result
+        run: node .github/release/cli.mjs init
+
+      - name: Resolve blank dispatch inputs
+        id: input_resolution
+        continue-on-error: true
+        run: node .github/release/cli.mjs resolve-inputs
+        env:
+          RELEASE_GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Validate release inputs
+        id: input_validation
+        if: ${{ steps.input_resolution.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs validate-inputs
+
+      - name: Validate and check out exact origin/master source
+        id: source_validation
+        if: ${{ steps.input_validation.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs validate-source
+        env:
+          RELEASE_GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Validate release intent and proposed version
+        id: intent_validation
+        if: ${{ steps.source_validation.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs validate-intent
+        env:
+          RELEASE_GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Install locked dependencies
+        id: dependencies
+        if: ${{ steps.intent_validation.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs run dependencies
+
+      - name: Apply planned version in the disposable checkout
+        id: version_planning
+        if: ${{ steps.dependencies.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs apply-version
+
+      - name: Audit production dependencies
+        id: audit
+        if: ${{ steps.version_planning.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs run audit
+
+      - name: Run ESLint
+        id: lint
+        if: ${{ steps.version_planning.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs run lint
+
+      - name: Compile TypeScript
+        id: compile
+        if: ${{ steps.version_planning.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs run compile
+
+      - name: Run unit tests
+        id: tests
+        if: ${{ steps.version_planning.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs run tests
+
+      - name: Build and package Chrome
+        id: chrome_build_package
+        if: ${{ steps.version_planning.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs run chromeBuildPackage
+
+      - name: Validate Chrome credentials without submission
+        id: chrome_credentials
+        if: >-
+          ${{ inputs.dryRun == false &&
+              steps.audit.outcome == 'success' &&
+              steps.lint.outcome == 'success' &&
+              steps.compile.outcome == 'success' &&
+              steps.tests.outcome == 'success' &&
+              steps.chrome_build_package.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs run chromeCredentialValidation
+        env:
+          CHROME_API_VERSION: v2
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{ secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL }}
+          CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY }}
+          CHROME_CANCEL_PENDING: 'true'
+          CHROME_SKIP_REVIEW: 'false'
+          CHROME_PUBLISH_TYPE: DEFAULT_PUBLISH
+          CHROME_DEPLOY_PERCENTAGE: '100'
+
+      - name: Prepare local version commit and release refs
+        id: prepare_version
+        if: ${{ inputs.dryRun == false && steps.chrome_credentials.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs prepare-version
+
+      # This is the exact irreversible boundary: master, the version tag, and
+      # the durable intent marker are one atomic exact-lease push.
+      - name: Atomically push version and production intent marker
+        id: release_boundary
+        if: ${{ inputs.dryRun == false && steps.prepare_version.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs push-boundary
+        env:
+          RELEASE_GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Submit Chrome package
+        id: chrome_submission
+        if: ${{ inputs.dryRun == false && steps.release_boundary.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs run chromeSubmission
+        env:
+          CHROME_API_VERSION: v2
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{ secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL }}
+          CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY }}
+          CHROME_CANCEL_PENDING: 'true'
+          CHROME_SKIP_REVIEW: 'false'
+          CHROME_PUBLISH_TYPE: DEFAULT_PUBLISH
+          CHROME_DEPLOY_PERCENTAGE: '100'
+
+      # Cloudflare serves the orphan hosted branch, not master, so the generated
+      # hosted/ files are restored from it before anything is generated or pruned.
+      - name: Restore hosted files from the hosted branch
+        id: hosted_seed
+        if: ${{ inputs.dryRun == false && steps.chrome_submission.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs seed-hosted
+        env:
+          RELEASE_GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Generate hosted release files in the workspace
+        id: hosted_generation
+        if: ${{ inputs.dryRun == false && steps.hosted_seed.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs run hostedGeneration
+
+      - name: Commit and guarded-push hosted release files
+        id: hosted_commit
+        if: ${{ inputs.dryRun == false && steps.hosted_generation.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs commit-hosted
+        env:
+          RELEASE_GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Send optional release-note notifications
+        id: notification
+        if: ${{ inputs.dryRun == false && steps.hosted_commit.outcome == 'success' }}
+        continue-on-error: true
+        run: node .github/release/cli.mjs run notification
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          RELEASE_NOTES_EMAIL_TO: ${{ secrets.RELEASE_NOTES_EMAIL_TO }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Finalize result and job summary
+        if: ${{ always() }}
+        run: node .github/release/cli.mjs finalize
+
+      - name: Upload machine-readable release result
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-result-${{ github.run_id }}
+          path: .output/release-result.json
+          if-no-files-found: warn
+          retention-days: 90

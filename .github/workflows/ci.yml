@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/release/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix .github/release
+      - run: npm run lint
+      - run: npm run compile
+      - run: npm run test -- --run
+      - run: npm run test:release
+      - run: npm run build
+      # The release packages with these exact commands, so a packaging break
+      # must fail here rather than in a production run.
+      - run: npm run zip

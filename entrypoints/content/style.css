@@ -1,0 +1,847 @@
+/* Every class and attribute here is prefixed dat- (Dawnhub Advertiser Tools), so these styles never reach
+   Dawnhub's own elements, or those of any other extension injecting into the same page. */
+
+.dat-icon {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ---- Toolbar ------------------------------------------------------------------------------------------- */
+
+/* The positioning context for the booking search popup, which opens right under it. */
+.dat-toolbar {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0 6px;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Both toolbar buttons are drawn as Material UI buttons, the kind Dawnhub itself is built from, so they sit in
+   its toolbar like its own: the main action as a contained button in the near-black of Dawnhub's table header,
+   the buyer search as an outlined one. Dark mode flips the contained button to light, so it still stands out.
+   Dawnhub switches themes in-page; its mode toggle shows a light-mode icon while dark mode is active. */
+.dat-fill-button,
+.dat-secondary-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 4px;
+    font: 500 14px/1 inherit;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dat-fill-button:focus-visible,
+.dat-secondary-button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.dat-fill-button .dat-icon,
+.dat-secondary-button .dat-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.dat-fill-button {
+    border: 0;
+    background: #212121;
+    color: #ffffff;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 3px 1px -2px, rgba(0, 0, 0, 0.14) 0 2px 2px 0, rgba(0, 0, 0, 0.12) 0 1px 5px 0;
+}
+
+.dat-fill-button:hover {
+    background: #424242;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 2px 4px -1px, rgba(0, 0, 0, 0.14) 0 4px 5px 0, rgba(0, 0, 0, 0.12) 0 1px 10px 0;
+}
+
+.dat-fill-button-icon {
+    display: inline-flex;
+}
+
+.dat-fill-button-shortcut {
+    margin-left: 4px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.85);
+    font: 500 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.dat-secondary-button {
+    border: 1px solid rgba(0, 0, 0, 0.23);
+    background: transparent;
+    color: rgba(0, 0, 0, 0.87);
+}
+
+.dat-secondary-button:hover {
+    border-color: rgba(0, 0, 0, 0.87);
+    background: rgba(0, 0, 0, 0.04);
+}
+
+body:has([aria-label="toggle dark mode"] [data-testid="LightModeIcon"]) .dat-fill-button {
+    background: #f5f5f5;
+    color: rgba(0, 0, 0, 0.87);
+}
+
+body:has([aria-label="toggle dark mode"] [data-testid="LightModeIcon"]) .dat-fill-button:hover {
+    background: #e0e0e0;
+}
+
+body:has([aria-label="toggle dark mode"] [data-testid="LightModeIcon"]) .dat-fill-button-shortcut {
+    background: rgba(0, 0, 0, 0.08);
+    color: rgba(0, 0, 0, 0.6);
+}
+
+body:has([aria-label="toggle dark mode"] [data-testid="LightModeIcon"]) .dat-secondary-button {
+    border-color: rgba(255, 255, 255, 0.23);
+    color: #ffffff;
+}
+
+body:has([aria-label="toggle dark mode"] [data-testid="LightModeIcon"]) .dat-secondary-button:hover {
+    border-color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 700px) {
+    .dat-fill-button-shortcut {
+        display: none;
+    }
+}
+
+/* ---- Raids table --------------------------------------------------------------------------------------- */
+
+/* An extension filter hides its rows in place: Dawnhub goes on rendering them and goes on numbering its
+   row ids across them, which is what keeps every row resolving to the raid it belongs to. */
+tr[data-dat-raid-hidden] {
+    display: none !important;
+}
+
+/* Dawnhub opens a raid on row click only, so the raid time doubles as a link that middle click can open. */
+.dat-raid-link {
+    color: #1565c0;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.dat-raid-link:hover {
+    text-decoration: underline;
+}
+
+/* Dawnhub switches themes in-page; its mode toggle shows a light-mode icon while dark mode is active. */
+body:has([aria-label="toggle dark mode"] [data-testid="LightModeIcon"]) .dat-raid-link {
+    color: #90caf9;
+}
+
+/* A ticked label, the way Material UI labels its own checkboxes. It joins the column Dawnhub stacks its own
+   filter in, right above it, so it takes a full row of its own there, centered the way Dawnhub centers its
+   own. currentColor keeps it legible in both of Dawnhub's themes. */
+.dat-checkbox-toggle {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    margin-bottom: 4px;
+    color: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+}
+
+.dat-toolbar .dat-checkbox-toggle {
+    width: auto;
+    margin-bottom: 0;
+}
+
+.dat-mui-checkbox {
+    display: inline-flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    color: inherit;
+    transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dat-mui-checkbox:hover {
+    background-color: rgba(127, 127, 127, 0.16);
+}
+
+.dat-mui-checkbox input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.dat-mui-checkbox-icon {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+    opacity: 0.6;
+    pointer-events: none;
+    user-select: none;
+}
+
+.dat-mui-checkbox input:checked ~ .dat-mui-checkbox-icon {
+    opacity: 1;
+}
+
+.dat-mui-checkbox input:focus-visible ~ .dat-mui-checkbox-icon {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.dat-mui-checkbox-mark {
+    display: none;
+}
+
+.dat-mui-checkbox input:checked ~ .dat-mui-checkbox-icon .dat-mui-checkbox-blank {
+    display: none;
+}
+
+.dat-mui-checkbox input:checked ~ .dat-mui-checkbox-icon .dat-mui-checkbox-mark {
+    display: inline;
+}
+
+/* ---- Booking search popup ------------------------------------------------------------------------------ */
+
+.dat-search-row {
+    width: 100%;
+    display: block;
+    position: absolute;
+    left: 0;
+    top: calc(100% + 8px);
+    z-index: 1000;
+}
+
+.dat-search-popup {
+    width: min(820px, 100%);
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1px solid #d0d5dd;
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.16);
+    color: #1d2939;
+}
+
+.dat-search-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 8px;
+}
+
+.dat-search-header {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1d2939;
+    flex: 1;
+}
+
+.dat-search-action {
+    border: 0;
+    background: #f2f4f7;
+    color: #344054;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.dat-search-action:hover {
+    background: #e4e7ec;
+}
+
+.dat-search-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.dat-search-input:focus {
+    outline: none;
+    border-color: #9b8afb;
+    box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.16);
+}
+
+.dat-search-status {
+    margin-top: 6px;
+    color: #667085;
+    font-size: 12px;
+}
+
+.dat-search-results {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 360px;
+    overflow: auto;
+}
+
+.dat-search-result {
+    border: 1px solid #e4e7ec;
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: #f9fafb;
+}
+
+.dat-search-link {
+    color: #6941c6;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 4px;
+}
+
+.dat-search-link:hover {
+    text-decoration: underline;
+}
+
+.dat-search-meta {
+    color: #344054;
+    font-size: 12px;
+}
+
+.dat-search-more {
+    color: #667085;
+    font-size: 12px;
+    text-align: center;
+    padding: 6px 0;
+}
+
+/* ---- Fill booking dialog ------------------------------------------------------------------------------- */
+
+.dat-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(16, 24, 40, 0.55);
+    backdrop-filter: blur(2px);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.dat-dialog {
+    box-sizing: border-box;
+    width: min(600px, 100%);
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    padding: 22px 24px 20px;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #1d2939;
+    box-shadow: 0 24px 48px -12px rgba(16, 24, 40, 0.35);
+    font-size: 14px;
+    line-height: 1.45;
+    text-align: left;
+}
+
+.dat-dialog-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.dat-dialog h2 {
+    margin: 0;
+    color: #101828;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.dat-dialog-subtitle {
+    margin: 2px 0 0;
+    color: #667085;
+    font-size: 13px;
+}
+
+.dat-dialog-close {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #667085;
+    cursor: pointer;
+}
+
+.dat-dialog-close:hover {
+    background: #f2f4f7;
+    color: #344054;
+}
+
+.dat-dialog-close svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.dat-dialog kbd {
+    display: inline-block;
+    padding: 1px 5px;
+    border: 1px solid #d0d5dd;
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    background: #ffffff;
+    color: #344054;
+    font: 600 11px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.dat-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+    padding: 22px 20px;
+    border: 2px dashed #c7bfff;
+    border-radius: 12px;
+    background: #f7f5ff;
+    color: #475467;
+    font-size: 13px;
+    text-align: center;
+    transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.dat-dropzone strong {
+    color: #101828;
+    font-size: 15px;
+}
+
+.dat-dropzone--active {
+    border-color: #7c5cff;
+    background: #efebff;
+}
+
+.dat-dropzone-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 2px;
+    fill: none;
+    stroke: #7c5cff;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.dat-notice {
+    margin: 0 0 14px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    background: #f2f4f7;
+    color: #344054;
+    font-size: 13px;
+}
+
+.dat-notice a {
+    color: inherit;
+    font-weight: 600;
+}
+
+.dat-notice--warning {
+    background: #fffaeb;
+    color: #93370d;
+}
+
+.dat-notice--error {
+    background: #fef3f2;
+    color: #b42318;
+}
+
+.dat-notice--success {
+    background: #ecfdf3;
+    color: #067647;
+}
+
+.dat-notice--progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f4f3ff;
+    color: #5925dc;
+}
+
+.dat-booking-intent-preview {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.dat-booking-intent-preview img {
+    max-width: 100%;
+    max-height: 240px;
+    border: 1px solid #e4e7ec;
+    border-radius: 8px;
+}
+
+.dat-booking-intent-pasted-text {
+    width: 100%;
+    max-height: 150px;
+    margin: 0;
+    overflow: auto;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #e4e7ec;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #1d2939;
+    font: 13px/1.45 inherit;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.dat-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 14px;
+    margin-bottom: 16px;
+}
+
+.dat-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.dat-field--wide {
+    grid-column: 1 / -1;
+}
+
+.dat-field-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #344054;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.dat-field input,
+.dat-field select {
+    width: 100%;
+    height: 38px;
+    box-sizing: border-box;
+    padding: 0 11px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #101828;
+    font: 400 14px/1.2 inherit;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.dat-field input:focus,
+.dat-field select:focus {
+    outline: none;
+    border-color: #9b8afb;
+    box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.16);
+}
+
+.dat-field-hint {
+    color: #667085;
+    font-size: 12px;
+}
+
+.dat-input-suffix {
+    position: relative;
+    display: block;
+}
+
+.dat-input-suffix input {
+    padding-right: 28px;
+}
+
+.dat-input-suffix > span {
+    position: absolute;
+    top: 50%;
+    right: 11px;
+    transform: translateY(-50%);
+    color: #667085;
+    pointer-events: none;
+}
+
+.dat-dialog-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.dat-dialog-footnote {
+    margin-right: auto;
+    color: #667085;
+    font-size: 12px;
+}
+
+.dat-button {
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 8px;
+    font: 600 14px/1 inherit;
+    cursor: pointer;
+}
+
+.dat-button:focus-visible {
+    outline: 3px solid rgba(124, 92, 255, 0.45);
+    outline-offset: 2px;
+}
+
+.dat-button--secondary {
+    border: 1px solid #d0d5dd;
+    background: #ffffff;
+    color: #344054;
+}
+
+.dat-button--secondary:hover {
+    background: #f9fafb;
+}
+
+.dat-button--primary {
+    border: 0;
+    background: #212121;
+    color: #ffffff;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 3px 1px -2px, rgba(0, 0, 0, 0.14) 0 2px 2px 0, rgba(0, 0, 0, 0.12) 0 1px 5px 0;
+}
+
+.dat-button--primary:hover {
+    background: #424242;
+}
+
+.dat-link-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #6941c6;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.dat-spinner {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 11px;
+    height: 11px;
+    border: 2px solid #d9d6fe;
+    border-top-color: #7c5cff;
+    border-radius: 50%;
+    animation: dat-spin 0.7s linear infinite;
+}
+
+@keyframes dat-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 520px) {
+    .dat-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .dat-dialog-footnote {
+        display: none;
+    }
+}
+
+/* ---- Bookings in the fill booking dialog --------------------------------------------------------------- */
+
+/* The dialog is focused on open so a paste lands in it rather than in the page; it draws no ring of its own. */
+.dat-dialog:focus {
+    outline: none;
+}
+
+.dat-bookings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+/* The bookings read out of one paste, one under the other - a message regularly asks for more than one, and
+   each is filled in, opened and (if it was read wrong) removed on its own. */
+.dat-bookings {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.dat-booking-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid #e4e7ec;
+    border-radius: 10px;
+    background: #fcfcfd;
+}
+
+.dat-booking-entry-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.dat-booking-entry-label {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    color: #101828;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* Which bookings of a paste were already opened, so going through several shows which are still left. */
+.dat-booking-entry-opened {
+    color: #067647;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.dat-booking-entry-actions {
+    display: inline-flex;
+    gap: 8px;
+}
+
+.dat-button--small {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+
+.dat-booking-entry .dat-fields {
+    margin-bottom: 0;
+}
+
+.dat-booking-entry .dat-notice {
+    margin: 0;
+}
+
+/* A group of options (the raid list, the boss checkboxes), labelled like the fields around it. */
+.dat-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* The open raids to pick from, listed rather than put in a native <select> so each boss of a curve raid can be
+   colored on its own. Deliberately not a scrolling box of its own: several bookings put several of these in a
+   dialog that already scrolls, and a scroll area inside another swallows the scrolling meant for the dialog.
+   The list is only open while a raid is being picked for that booking (see BookingIntentEntry.vue). */
+.dat-raid-options {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.dat-raid-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 11px;
+    color: #1d2939;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.dat-raid-option + .dat-raid-option {
+    border-top: 1px solid #f2f4f7;
+}
+
+.dat-raid-option:hover {
+    background: #f9fafb;
+}
+
+.dat-raid-option-picked,
+.dat-raid-option-picked:hover {
+    background: #f4f3ff;
+}
+
+.dat-raid-option input,
+.dat-boss-option input {
+    margin: 0;
+    accent-color: #7c5cff;
+}
+
+.dat-raid-options-empty {
+    margin: 0;
+    padding: 8px 11px;
+    color: #667085;
+    font-size: 13px;
+}
+
+/* The same red Dawnhub's own raid list marks a sold-out boss with, and a softer amber for one booked well past
+   the raid's other boss. */
+.dat-fullness-full {
+    color: #d92d20;
+    font-weight: 700;
+}
+
+.dat-fullness-ahead {
+    color: #b54708;
+    font-weight: 700;
+}
+
+.dat-boss-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+}
+
+.dat-boss-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #1d2939;
+    font-size: 14px;
+    cursor: pointer;
+}

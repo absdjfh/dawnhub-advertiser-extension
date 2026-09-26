@@ -1,0 +1,119 @@
+name: Release reconcile
+
+run-name: Reconcile release intent ${{ inputs.releaseIntentId }}
+
+# This workflow never decides on its own whether a store submission or a
+# hosted publish already happened: every action below is one explicit choice
+# made by whoever checked the real external state (the Chrome Web Store and the
+# hosted download site) after a production release run finished ambiguous.
+# See docs/release-workflow.md#partial-failure-and-reconciliation.
+on:
+  workflow_dispatch:
+    inputs:
+      releaseIntentId:
+        description: The releaseIntentId of the accepted production run to reconcile.
+        required: true
+        type: string
+      chromeSubmissionAction:
+        description: Chrome Web Store submission
+        required: true
+        type: choice
+        default: unspecified
+        options: [unspecified, already-succeeded, not-attempted]
+      hostedGenerationAction:
+        description: Hosted release files generation (in the workspace)
+        required: true
+        type: choice
+        default: unspecified
+        options: [unspecified, already-generated, generate-now]
+      hostedCommitAction:
+        description: Hosted release files commit and push
+        required: true
+        type: choice
+        default: unspecified
+        options: [unspecified, already-committed, commit-now]
+      notificationAction:
+        description: Release-note notifications
+        required: true
+        type: choice
+        default: unspecified
+        options: [unspecified, already-sent, send-now, skip]
+
+# Reconciliation can submit to stores and push hosted files, exactly like the
+# release workflow, so it shares the same non-cancelling production lane and
+# can never race or overlap an in-progress production release.
+permissions:
+  contents: write
+
+concurrency:
+  group: extension-release-production
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_RESULT_PATH: .output/release-result.json
+      RELEASE_TRIGGER_REF: ${{ github.ref }}
+      RELEASE_WORKFLOW_REF: ${{ github.workflow_ref }}
+      GITHUB_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Check out authoritative branch with full history and tags
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/release/package-lock.json
+
+      - name: Initialize machine-readable result
+        run: node .github/release/cli.mjs init
+
+      - name: Reconcile the accepted release intent
+        id: reconcile
+        continue-on-error: true
+        run: node .github/release/cli.mjs reconcile
+        env:
+          RECONCILE_INTENT_ID: ${{ inputs.releaseIntentId }}
+          RECONCILE_CHROME_SUBMISSION_ACTION: ${{ inputs.chromeSubmissionAction }}
+          RECONCILE_HOSTED_GENERATION_ACTION: ${{ inputs.hostedGenerationAction }}
+          RECONCILE_HOSTED_COMMIT_ACTION: ${{ inputs.hostedCommitAction }}
+          RECONCILE_NOTIFICATION_ACTION: ${{ inputs.notificationAction }}
+          RELEASE_GITHUB_TOKEN: ${{ github.token }}
+          CHROME_API_VERSION: v2
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{ secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL }}
+          CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY }}
+          CHROME_CANCEL_PENDING: 'true'
+          CHROME_SKIP_REVIEW: 'false'
+          CHROME_PUBLISH_TYPE: DEFAULT_PUBLISH
+          CHROME_DEPLOY_PERCENTAGE: '100'
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          RELEASE_NOTES_EMAIL_TO: ${{ secrets.RELEASE_NOTES_EMAIL_TO }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Finalize result and job summary
+        if: ${{ always() }}
+        run: node .github/release/cli.mjs finalize
+
+      - name: Upload machine-readable release result
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-reconcile-result-${{ github.run_id }}
+          path: .output/release-result.json
+          if-no-files-found: warn
+          retention-days: 90

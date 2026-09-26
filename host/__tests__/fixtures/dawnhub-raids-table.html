@@ -1,0 +1,39 @@
+<!-- Dawnhub's own top banner, carrying its dark mode toggle. -->
+<header class="MuiAppBar-root">
+  <div class="MuiToolbar-root">
+    <button aria-label="toggle dark mode" type="button"><svg data-testid="DarkModeIcon"></svg></button>
+  </div>
+</header>
+<!-- Dawnhub's own raid filter, stacking its label above the armor types it filters VIP raids by. -->
+<div class="MuiStack-root">
+  <span>Show only VIP raids with slots available for:</span>
+  <div role="group">
+    <button value="cloth" aria-pressed="false">Cloth</button>
+    <button value="leather" aria-pressed="false">Leather</button>
+    <button value="mail" aria-pressed="false">Mail</button>
+    <button value="plate" aria-pressed="false">Plate</button>
+  </div>
+</div>
+<div role="toolbar"><div></div></div>
+<label for="start-date">Start Date</label>
+<input id="start-date" value="01/08/2026">
+<label for="end-date">End Date</label>
+<input id="end-date" value="01/08/2026">
+<table role="grid" class="MuiTable-root">
+  <thead class="MuiTableHead-root">
+    <tr class="MuiTableRow-root MuiTableRow-head">
+      <th class="MuiTableCell-root MuiTableCell-head" scope="col" data-colindex="0" data-tableid="raids">Buyers</th>
+      <th class="MuiTableCell-root MuiTableCell-head" scope="col" data-colindex="1" data-tableid="raids">Time</th>
+      <th class="MuiTableCell-root MuiTableCell-head" scope="col" data-colindex="2" data-tableid="raids">Leader</th>
+      <th class="MuiTableCell-root MuiTableCell-head" scope="col" data-colindex="3" data-tableid="raids" style="width: 40px; padding: 0px;"><div></div></th>
+      <th class="MuiTableCell-root MuiTableCell-head" scope="col" data-colindex="4" data-tableid="raids"><div> </div></th>
+    </tr>
+  </thead>
+  <tbody class="MuiTableBody-root">
+    <tr class="MuiTableRow-root MuiTableRow-hover" id="MUIDataTableBodyRow-raids-0"><td class="MuiTableCell-root MuiTableCell-body" data-colindex="0"><div class="MUIDataTableBodyCell-root">1 / 4</div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="1"><div class="MUIDataTableBodyCell-root"><span style="font-weight: bold;">10:00</span></div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="2"><div class="MUIDataTableBodyCell-root">Leader 0</div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="3"><div class="MUIDataTableBodyCell-root"><span style="display: flex; gap: 2px; align-items: center;"><svg viewBox="0 0 24 24" data-testid="AttachMoneyIcon" aria-label="Min Price: On"></svg></span></div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="4"><div class="MUIDataTableBodyCell-root"></div></td></tr>
+    <tr class="MuiTableRow-root MuiTableRow-hover" id="MUIDataTableBodyRow-raids-1"><td class="MuiTableCell-root MuiTableCell-body" data-colindex="0"><div class="MUIDataTableBodyCell-root">1 / 10</div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="1"><div class="MUIDataTableBodyCell-root"><span style="font-weight: bold;">10:15</span></div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="2"><div class="MUIDataTableBodyCell-root">Leader 1</div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="3"><div class="MUIDataTableBodyCell-root"><span style="display: flex; gap: 2px; align-items: center;"><svg viewBox="0 0 24 24" data-testid="AttachMoneyIcon" aria-label="Min Price: On"></svg></span></div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="4"><div class="MUIDataTableBodyCell-root"></div></td></tr>
+    <tr class="MuiTableRow-root MuiTableRow-hover" id="MUIDataTableBodyRow-raids-2"><td class="MuiTableCell-root MuiTableCell-body" data-colindex="0"><div class="MUIDataTableBodyCell-root">1 / 4</div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="1"><div class="MUIDataTableBodyCell-root"><span style="font-weight: bold;">10:30</span></div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="2"><div class="MUIDataTableBodyCell-root">Leader 2</div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="3"><div class="MUIDataTableBodyCell-root"><span style="display: flex; gap: 2px; align-items: center;"><svg viewBox="0 0 24 24" data-testid="AttachMoneyIcon" aria-label="Min Price: On"></svg></span></div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="4"><div class="MUIDataTableBodyCell-root"></div></td></tr>
+    <tr class="MuiTableRow-root MuiTableRow-hover" id="MUIDataTableBodyRow-raids-3"><td class="MuiTableCell-root MuiTableCell-body" data-colindex="0"><div class="MUIDataTableBodyCell-root">1 / 4</div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="1"><div class="MUIDataTableBodyCell-root"><span style="font-weight: bold;">10:45</span></div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="2"><div class="MUIDataTableBodyCell-root">Leader 3</div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="3"><div class="MUIDataTableBodyCell-root"><span style="display: flex; gap: 2px; align-items: center;"><svg viewBox="0 0 24 24" data-testid="AttachMoneyIcon" aria-label="Min Price: On"></svg></span></div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="4"><div class="MUIDataTableBodyCell-root"></div></td></tr>
+    <tr class="MuiTableRow-root MuiTableRow-hover" id="MUIDataTableBodyRow-raids-4"><td class="MuiTableCell-root MuiTableCell-body" data-colindex="0"><div class="MUIDataTableBodyCell-root">2 / 10</div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="1"><div class="MUIDataTableBodyCell-root"><span style="font-weight: bold;">11:00</span></div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="2"><div class="MUIDataTableBodyCell-root">Leader 4</div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="3"><div class="MUIDataTableBodyCell-root"><span style="display: flex; gap: 2px; align-items: center;"><svg viewBox="0 0 24 24" data-testid="AttachMoneyIcon" aria-label="Min Price: On"></svg></span></div></td><td class="MuiTableCell-root MuiTableCell-body" data-colindex="4"><div class="MUIDataTableBodyCell-root"></div></td></tr>
+  </tbody>
+</table>

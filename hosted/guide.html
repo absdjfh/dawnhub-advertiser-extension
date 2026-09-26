@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="How to use Dawnhub Advertiser Tools: installing it, and how each of its tools for Dawnhub advertisers works.">
+    <link rel="canonical" href="https://dawn-adv-tools.rolich.net/guide.html">
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="stylesheet" href="index.css">
+    <title>Dawnhub Advertiser Tools User Guide</title>
+</head>
+<body>
+<div class="site">
+    <header class="topbar">
+        <a class="brand" href="index.html"><img src="icon.svg" alt=""><span>Dawnhub Advertiser Tools</span></a>
+        <nav aria-label="Site navigation">
+            <a href="index.html">Home</a>
+            <a href="downloads.html">Downloads</a>
+            <a class="active" href="guide.html">User guide</a>
+            <a href="privacy.html">Privacy policy</a>
+        </nav>
+    </header>
+    <main class="content guide-content">
+        <section class="intro">
+            <h1>User guide</h1>
+            <p>How to install Dawnhub Advertiser Tools, where its tools appear on Dawnhub, and how each of them works.</p>
+        </section>
+
+        <div class="guide-layout">
+            <nav class="guide-toc" aria-label="Guide contents">
+                <h2>Contents</h2>
+                <ol>
+                    <li><a href="#getting-started">Getting started</a></li>
+                    <li><a href="#fill-from-dm">Fill booking from a DM</a>
+                        <ol>
+                            <li><a href="#requirements">What it needs</a></li>
+                            <li><a href="#first-booking">Step by step</a></li>
+                            <li><a href="#pasting">Pasting a DM</a></li>
+                            <li><a href="#several-bookings">Several bookings in one DM</a></li>
+                            <li><a href="#matching">How the raid is picked</a></li>
+                            <li><a href="#filling">Checking and filling</a></li>
+                            <li><a href="#fill-from-dm-troubleshooting">Troubleshooting</a></li>
+                        </ol>
+                    </li>
+                    <li><a href="#find-a-buyer">Find a buyer</a></li>
+                    <li><a href="#slots-available">Raids with slots available</a></li>
+                    <li><a href="#raid-links">Raid time links</a></li>
+                    <li><a href="#troubleshooting">General troubleshooting</a></li>
+                    <li><a href="#privacy">Privacy in short</a></li>
+                </ol>
+            </nav>
+
+            <div>
+                <section id="getting-started" class="panel guide-section" aria-labelledby="getting-started-heading">
+                    <h2 id="getting-started-heading">1. Getting started</h2>
+                    <p>You need <strong>Google Chrome on a computer</strong> and a <strong>Dawnhub account</strong> that you already use to book buyers.</p>
+                    <ol>
+                        <li>Open the <a href="downloads.html">downloads page</a> and choose <strong>Chrome Web Store</strong>, then <strong>Add to Chrome</strong>.</li>
+                        <li>Chrome asks to let the extension read and change your data on <code>hub.dawn-boosting.com</code>. That's how it adds its tools to Dawnhub's pages, and it's the only site it runs on.</li>
+                        <li>Reload any Dawnhub tab you already had open.</li>
+                    </ol>
+                    <p>The tools appear directly on Dawnhub. Buttons sit above the table on the <a href="https://hub.dawn-boosting.com/bookings/raids?type=raid">raids list</a> and on a raid's own page, and the rest works inside the raids table itself. The extension's icon in Chrome's toolbar opens a short status popup with links back to this guide.</p>
+                    <p>On macOS, use <kbd>⌘</kbd> wherever this guide says <kbd>Ctrl</kbd>.</p>
+                </section>
+
+                <section id="fill-from-dm" class="panel guide-section" aria-labelledby="fill-from-dm-heading">
+                    <h2 id="fill-from-dm-heading">2. Fill booking from a DM</h2>
+                    <p>Paste a message from a buyer, such as a Discord or Battle.net DM or an in-game whisper, as a screenshot or as copied text. The extension picks the raid they're asking about, reads their Name-Realm and any price they mention, and fills in the booking for you to check and submit.</p>
+
+                    <h3 id="requirements">What it needs</h3>
+                    <p>This is the one tool that needs more than Chrome itself: it reads DMs with Chrome's built-in AI (Gemini Nano, through Chrome's Prompt API).</p>
+                    <ul>
+                        <li><strong>Desktop Chrome with built-in AI.</strong> Chrome on phones doesn't have it, and whether a computer qualifies is Chrome's decision. At the time of writing, Google asks for Windows 10 or 11, macOS 13 or later, Linux, or a Chromebook Plus. It also needs about 22 GB of free disk space and either a graphics card with more than 4 GB of memory or 16 GB of RAM. Google's <a href="https://developer.chrome.com/docs/ai/get-started#hardware">current requirements</a> have the details.</li>
+                        <li><strong>A one-time model download.</strong> Chrome downloads the AI model the first time it's needed. The extension's popup shows whether it's ready, and <strong>Download now</strong> starts it early. You can close the popup; the download carries on.</li>
+                    </ul>
+                    <p>To check yourself, open <code>chrome://on-device-internals</code> in a new tab. Without the AI, this tool still works as a quick booking form: pick the raid, type the Name-Realm and Pot, and it opens the raid and fills them in.</p>
+
+                    <h3 id="first-booking">Step by step</h3>
+                    <ol>
+                        <li>Open Dawnhub's raids list and wait for the raids to load. The DM is matched against the raids listed there, so pick the dates and region you sell for.</li>
+                        <li>Take a screenshot of the conversation, wherever it happened (on Windows, <kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> copies it straight to the clipboard). Or, where the app allows it, select the buyer's messages and copy them with <kbd>Ctrl</kbd>+<kbd>C</kbd>.</li>
+                        <li>Back on Dawnhub, press <kbd>Ctrl</kbd>+<kbd>V</kbd> anywhere on the page to paste the screenshot. To paste copied text, first click <strong>Fill booking from DM</strong> above the table, then paste into the window that opens.</li>
+                        <li>Wait a moment while it reads. Each booking's <strong>Raid</strong>, <strong>Name-Realm</strong> and <strong>Pot</strong> fill in as soon as it's done, plus the <strong>Bosses</strong> on a curve raid.</li>
+                        <li>Check the fields, then choose <strong>Open &amp; fill</strong> on the booking. The raid opens in a new tab with its booking form filled in, and the window stays open for the next booking.</li>
+                        <li>In the new tab, check the booking form, including the class Dawnhub's own search filled in, and submit it.</li>
+                    </ol>
+
+                    <h3 id="pasting">Pasting a DM</h3>
+                    <p><strong>Copied text is more accurate than a screenshot.</strong> A screenshot first has to be turned back into text, and that can misread a stylized display name or a name squeezed between timestamps. Screenshots are for when you only have an image.</p>
+                    <ul>
+                        <li><strong>Anywhere on the raids list or a raid's own page,</strong> a pasted <em>screenshot</em> opens the window straight away. Pasted <em>text</em> is left alone there, so pasting into Dawnhub's own fields keeps working as normal.</li>
+                        <li><strong>Inside the window,</strong> both screenshots and text are read, and you can also drag an image or text onto it. Pasting again replaces what was there. Anything you already typed or picked yourself is kept.</li>
+                        <li>For an accurate read, crop a screenshot to the conversation and include the message where the buyer writes their character. Only English conversations are supported.</li>
+                    </ul>
+                    <table class="data-table">
+                        <thead><tr><th>Read from the DM</th><th>Used for</th></tr></thead>
+                        <tbody>
+                        <tr><td>Raid time, name, difficulty, loot type</td><td>Picking the raid. The chat's own message timestamps are ignored. Naming an armor type ("mail at 21:30?") counts as asking for VIP.</td></tr>
+                        <tr><td>Curve boss</td><td>Which boss of a curve raid to tick, including the shorthand buyers use ("Coiled", "Ula"), or both. Every boss stays ticked when the DM names none.</td></tr>
+                        <tr><td>Class or armor type</td><td>Skipping any VIP raid that already sold the buyer's armor type.</td></tr>
+                        <tr><td>Price</td><td>The <strong>Pot</strong> field, in thousands of gold: "300k" becomes 300 and "1.5m" becomes 1500. Only when the DM names a price.</td></tr>
+                        <tr><td>Name-Realm</td><td>The <strong>Name-Realm</strong> field, only when the buyer clearly wrote it out. Never taken from the sender's display name.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3 id="several-bookings">Several bookings in one DM</h3>
+                    <p>Buyers often book more than one character in a single message, for example two of their own, or a character on each boss of a curve raid. Each character becomes a booking of its own in the window, with its own raid, bosses, Name-Realm and Pot.</p>
+                    <ul>
+                        <li>What the DM says once about the run, such as the time or the price, applies to every character in it.</li>
+                        <li>Open each booking with its own <strong>Open &amp; fill</strong>. Opened bookings are marked, so it's clear which are left.</li>
+                        <li>Use <strong>Add booking</strong> for a character the reading missed, and <strong>Remove</strong> for one it read by mistake.</li>
+                        <li>Pasting the next DM clears out the bookings you've already opened, and keeps any you haven't.</li>
+                    </ul>
+
+                    <h3 id="matching">How the raid is picked</h3>
+                    <p>The AI only reads plain facts from the DM. It never chooses the raid. The extension then scores every raid you can still sell into against those facts:</p>
+                    <table class="data-table">
+                        <thead><tr><th>Clue</th><th>Weight</th></tr></thead>
+                        <tbody>
+                        <tr><td>Start time matches</td><td>100</td></tr>
+                        <tr><td>Raid name matches</td><td>25</td></tr>
+                        <tr><td>Difficulty matches</td><td>20</td></tr>
+                        <tr><td>Loot type matches (or an armor type on a VIP raid)</td><td>15</td></tr>
+                        <tr><td>Starts soon</td><td>up to 15, for a raid starting now, fading to 0 three hours out</td></tr>
+                        </tbody>
+                    </table>
+                    <ul>
+                        <li>A raid is only picked automatically with a score of at least <strong>60</strong>. A matching time is enough on its own. Without a time, the raid name, difficulty and loot type together are enough. On a tie, the raid starting sooner wins.</li>
+                        <li>Only active raids with a free slot are considered. The raid list starts with those beginning within three hours; <strong>show all raids</strong> shows the rest of your list. Once a booking has a raid, only that raid is shown; <strong>change raid</strong> opens the list again.</li>
+                        <li>On a raid's own page, that raid is selected from the start. A DM that clearly names another raid replaces it, but a raid you picked yourself is never replaced.</li>
+                        <li>A price in the DM never affects which raid is picked.</li>
+                    </ul>
+
+                    <h3 id="filling">Checking and filling</h3>
+                    <p>Fields fill in automatically only while they're empty, and a small spinner next to a field means it's still being read. Check the Name-Realm spelling especially after a screenshot. Pot is a number in thousands of gold; leave it blank to keep whatever Dawnhub puts there. The raid list shows how full each raid is, and marks a sold-out curve boss in red.</p>
+                    <p><strong>Open &amp; fill</strong> opens the raid's booking page in a new tab and fills its form as soon as it appears, even when that raid is already open in this tab, so each booking gets a form of its own.</p>
+                    <p>Only <strong>Name-Realm</strong>, <strong>Pot</strong> and, on a curve raid, the <strong>Bosses</strong> ticked in the window are filled in. The extension then clicks Dawnhub's own magnifying glass next to Name-Realm, so Dawnhub looks the character up and fills in its class. Everything else is left as it is.</p>
+                    <div class="callout callout-warning">
+                        <strong>Nothing is ever submitted for you.</strong> Reading a DM is quick but not perfect. The booking is only created when you check and submit Dawnhub's form yourself.
+                    </div>
+
+                    <h3 id="fill-from-dm-troubleshooting">Troubleshooting</h3>
+                    <div class="faq">
+                        <details>
+                            <summary>"Chrome's on-device AI isn't available in this browser or on this device"</summary>
+                            <div><p>Chrome says your computer can't run its built-in AI, or it's switched off. Check <a href="#requirements">what it needs</a> and <code>chrome://on-device-internals</code>. Organizations can turn the feature off with a Chrome policy. You can still fill the fields in by hand.</p></div>
+                        </details>
+                        <details>
+                            <summary>It says it's downloading, or the first read takes a long time</summary>
+                            <div><p>The model downloads once, and that can take a while on a slow connection. Start it early from the extension's popup. After that, reading a DM takes a few seconds.</p></div>
+                        </details>
+                        <details>
+                            <summary>"Open Dawnhub's raids list first"</summary>
+                            <div><p>A DM is matched against the raids list you last viewed in the same tab. Open the raids list, wait for it to load, then paste again. On a raid's own page, that raid is always offered.</p></div>
+                        </details>
+                        <details>
+                            <summary>"No open raid clearly matches this DM"</summary>
+                            <div><p>Nothing in the DM pointed at one raid clearly enough, usually because no start time was mentioned, or the time isn't on your current list. Pick the raid yourself, or use <strong>show all raids</strong>. The Name-Realm and Pot it read are kept.</p></div>
+                        </details>
+                        <details>
+                            <summary>The Name-Realm is wrong or missing</summary>
+                            <div><p>Paste the copied message text instead of a screenshot. That's the most reliable fix.</p></div>
+                        </details>
+                        <details>
+                            <summary>"Dawnhub's character search didn't respond"</summary>
+                            <div><p>The booking was filled in, but Dawnhub's magnifying glass couldn't be clicked in time. Click it yourself before submitting.</p></div>
+                        </details>
+                    </div>
+                </section>
+
+                <section id="find-a-buyer" class="panel guide-section" aria-labelledby="find-a-buyer-heading">
+                    <h2 id="find-a-buyer-heading">3. Find a buyer</h2>
+                    <p>On the raids list, <strong>Find a buyer</strong> searches every raid in the dates set in Dawnhub's Start Date and End Date filters for a character. Type part of their name-realm to see which raids they're booked into, with pot, deposit and paid status. Each result links to its raid in a new tab, and <strong>Refresh</strong> reloads the bookings. What you see depends on which bookings Dawnhub shows your account.</p>
+                </section>
+
+                <section id="slots-available" class="panel guide-section" aria-labelledby="slots-available-heading">
+                    <h2 id="slots-available-heading">4. Raids with slots available</h2>
+                    <p>A <strong>Show only raids with slots available</strong> tick above Dawnhub's own VIP armor filter hides every raid that's already full, VIP, curve and regular alike. Dawnhub's own filter only covers VIP raids. The tick works alongside Dawnhub's filters and is remembered between visits.</p>
+                </section>
+
+                <section id="raid-links" class="panel guide-section" aria-labelledby="raid-links-heading">
+                    <h2 id="raid-links-heading">5. Raid time links</h2>
+                    <p>Each raid's time on the raids list is a real link. Middle-click it or <kbd>Ctrl</kbd>+click it to open the raid in a new tab, or click it as normal to open it in place.</p>
+                </section>
+
+                <section id="troubleshooting" class="panel guide-section faq" aria-labelledby="troubleshooting-heading">
+                    <h2 id="troubleshooting-heading">6. General troubleshooting</h2>
+                    <details>
+                        <summary>The extension's buttons or tick aren't there</summary>
+                        <div><p>Reload the page after installing or updating the extension. Buttons appear above the table on the raids list and on a raid's own page. The slots tick and the raid time links only appear on the raids list.</p></div>
+                    </details>
+                    <details>
+                        <summary>Something stopped working after Dawnhub changed</summary>
+                        <div><p>The extension works with Dawnhub's pages as they are, so a redesign on Dawnhub's side can break a tool until the extension is updated. Chrome Web Store installs update automatically once a fix is out.</p></div>
+                    </details>
+                </section>
+
+                <section id="privacy" class="panel guide-section" aria-labelledby="privacy-heading">
+                    <h2 id="privacy-heading">7. Privacy in short</h2>
+                    <p>The extension works with the Dawnhub data your account can already see, and talks only to Dawnhub itself. Anything you paste into it, such as a DM screenshot or message, is read on your computer and never sent anywhere. There are no analytics and no servers of its own. Details are in the <a href="privacy.html">privacy policy</a>.</p>
+                </section>
+            </div>
+        </div>
+    </main>
+    <footer class="site-footer">
+        <a href="https://github.com/absdjfh/dawnhub-advertiser-extension">Source code</a>
+    </footer>
+</div>
+</body>
+</html>

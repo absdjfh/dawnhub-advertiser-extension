@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Download Dawnhub Advertiser Tools for Google Chrome.">
+    <link rel="canonical" href="https://dawn-adv-tools.rolich.net/downloads.html">
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="stylesheet" href="index.css">
+    <title>Download Dawnhub Advertiser Tools</title>
+</head>
+<body>
+<div class="site">
+    <header class="topbar">
+        <a class="brand" href="index.html"><img src="icon.svg" alt=""><span>Dawnhub Advertiser Tools</span></a>
+        <nav aria-label="Site navigation">
+            <a href="index.html">Home</a>
+            <a class="active" href="downloads.html">Downloads</a>
+            <a href="guide.html">User guide</a>
+            <a href="privacy.html">Privacy policy</a>
+        </nav>
+    </header>
+    <main class="content">
+        <section class="intro">
+            <h1>Download Dawnhub Advertiser Tools</h1>
+            <p>A free extension for desktop Google Chrome. Install it from the Chrome Web Store to get updates automatically. See the <a href="guide.html">user guide</a> for what each tool needs.</p>
+        </section>
+
+        <section class="panel" aria-labelledby="downloads-heading">
+            <div class="section-heading">
+                <h2 id="downloads-heading">Current version</h2>
+                <p id="release-status" class="release-status" aria-live="polite">Loading…</p>
+            </div>
+            <div id="downloads" class="download-grid"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="install-heading">
+            <div class="section-heading"><h2 id="install-heading">Installing the ZIP by hand</h2><p class="muted">Only if you can't use the Chrome Web Store</p></div>
+            <div class="installation-grid">
+                <section class="installation-card" aria-labelledby="zip-install-heading"><h3 id="zip-install-heading">Load it into Chrome</h3><ol><li>Download the ZIP above and extract it to a folder you'll keep.</li><li>Open <strong>chrome://extensions</strong> and switch on <strong>Developer mode</strong>.</li><li>Select <strong>Load unpacked</strong> and choose the extracted folder.</li></ol></section>
+                <section class="installation-card" aria-labelledby="zip-update-heading"><h3 id="zip-update-heading">Keeping it up to date</h3><ol><li>A ZIP install doesn't update on its own. Check back here for new versions.</li><li>To update, extract the new ZIP over the same folder.</li><li>Then select the reload icon on the extension's card in <strong>chrome://extensions</strong>.</li></ol></section>
+            </div>
+        </section>
+
+        <section class="panel" aria-labelledby="whats-new-heading">
+            <div class="section-heading"><h2 id="whats-new-heading">What’s new</h2><p class="muted">Recent extension updates</p></div>
+            <div id="release-notes" class="release-notes" aria-live="polite"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="previous-heading">
+            <div class="section-heading"><h2 id="previous-heading">Previous versions</h2><p class="muted">Use these only if you need a specific older package.</p></div>
+            <div id="history" class="history-grid"></div>
+        </section>
+    </main>
+</div>
+<script src="index.js"></script>
+</body>
+</html>
