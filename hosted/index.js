@@ -1,6 +1,5 @@
-// Set to the listing's URL once the extension has a Chrome Web Store page. Until then the store card says the
-// listing is coming, so the page never links to a listing that doesn't exist yet.
-const chromeStoreUrl = '';
+// The Chrome Web Store listing. An empty string makes the store card say the listing is coming instead of linking.
+const chromeStoreUrl = 'https://chromewebstore.google.com/detail/dawnhub-advertiser-tools/nggaokolllbbfdmabfondoffikghfpea';
 
 const cards = [
     {id: 'chrome', title: 'Chrome Web Store', description: 'Install from the Chrome Web Store. Updates automatically.', storeUrl: chromeStoreUrl, primaryLabel: 'Add to Chrome'},

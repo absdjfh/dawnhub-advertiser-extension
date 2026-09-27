@@ -38,3 +38,8 @@ code { padding: 2px 5px; border-radius: 4px; background: #202532; color: #dde1ea
 @media (max-width: 560px) { body { font-size: 14px; } .topbar { width: min(100% - 24px, 1080px); padding: 16px 0; align-items: flex-start; gap: 12px; } nav { flex-wrap: wrap; justify-content: flex-end; } main { width: min(100% - 24px, 820px); margin-top: 32px; padding: 22px; border-radius: 10px; } h1 { font-size: 25px; } }
 .brand span { white-space: nowrap; }
 @media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 8px 12px; } nav { flex-wrap: wrap; justify-content: flex-start; } }
+.site-footer { display: flex; width: min(100% - 40px, 820px); margin: 0 auto; font-size: 13px; }
+.github-link { display: inline-flex; align-items: center; gap: 7px; color: #aeb5c5; }
+.github-link:hover { color: #fff; }
+.github-link svg { width: 18px; height: 18px; fill: currentColor; }
+@media (max-width: 560px) { .site-footer { width: min(100% - 24px, 820px); } }
