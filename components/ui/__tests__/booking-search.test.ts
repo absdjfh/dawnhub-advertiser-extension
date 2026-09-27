@@ -19,6 +19,15 @@ const raidWithBookings = {
         deposit: 25,
         paid: "yes",
         source: "tc"
+    }, {
+        _id: "booking-2",
+        nameRealm: "Encrypted",
+        advertiserName: "Seller",
+        class: "mage",
+        pot: "150",
+        deposit: 25,
+        paid: "yes",
+        source: "tc"
     }]
 } as RaidData
 const raidWithoutBookings = {...raidWithBookings, _id: "raid-2", bookings: undefined} as RaidData
@@ -97,6 +106,26 @@ describe("Find a buyer", () => {
 
         await vi.waitFor(() => expect(searchStatus()).toBe("No matches found."))
         expect(document.querySelector(".dat-search-result")).toBeNull()
+    })
+
+    it("should exclude bookings with 'Encrypted' nameRealm from search results", async () => {
+        openSearch()
+        await vi.waitFor(() => expect(searchStatus()).toBe("Loaded 1 raids. Type to search."))
+
+        search("encrypted")
+
+        await vi.waitFor(() => expect(searchStatus()).toBe("No matches found."))
+        expect(document.querySelector(".dat-search-result")).toBeNull()
+    })
+
+    it("should still find real bookings after adding encrypted bookings to the fixture", async () => {
+        openSearch()
+        await vi.waitFor(() => expect(searchStatus()).toBe("Loaded 1 raids. Type to search."))
+
+        search("alice")
+
+        await vi.waitFor(() => expect(searchStatus()).toBe("Found 1 bookings."))
+        expect(document.querySelector(".dat-search-result")).not.toBeNull()
     })
 
     it("should say so when the page shows no date range to search", async () => {
