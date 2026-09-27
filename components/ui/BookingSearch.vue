@@ -25,7 +25,7 @@ const matches = computed<SearchMatch[]>(() => {
     const normalizedTerm = term.value.trim().toLowerCase()
     if (!normalizedTerm || !cachedRaids.value) return []
     return cachedRaids.value.flatMap(raid => (raid.bookings ?? [])
-        .filter(booking => booking.nameRealm?.toLowerCase().includes(normalizedTerm))
+        .filter(booking => booking.nameRealm?.trim().toLowerCase() !== "encrypted" && booking.nameRealm?.toLowerCase().includes(normalizedTerm))
         .map(booking => ({raid, booking})))
 })
 
