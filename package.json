@@ -13,7 +13,6 @@
     "compile": "vue-tsc --noEmit",
     "lint": "eslint .",
     "postinstall": "wxt prepare",
-    "release-notes": "cross-env PREVIEW=1 node .github/release/notify-release.mjs",
     "test:release": "vitest run .github/release/__tests__"
   },
   "dependencies": {
@@ -28,7 +27,6 @@
     "@vitest/coverage-v8": "^4.1.10",
     "@vue/test-utils": "^2.5.1",
     "@wxt-dev/module-vue": "^1.0.3",
-    "cross-env": "^10.1.0",
     "eslint": "^10.8.0",
     "globals": "^17.9.0",
     "happy-dom": "^20.8.3",

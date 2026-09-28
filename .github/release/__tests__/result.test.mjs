@@ -41,7 +41,6 @@ describe('release result model', () => {
     it('represents complete production success', () => {
         const result = resultFor(false);
         succeedRequired(result, REQUIRED_PRODUCTION_COMPONENTS);
-        recordComponent(result, 'notification', 'success', 'Notification sent.');
         result.versionCommitSha = 'b'.repeat(40);
         result.releaseCommitSha = 'c'.repeat(40);
         result.tag = 'v2.28.3';
@@ -63,10 +62,9 @@ describe('release result model', () => {
         expect(result.components.versionCommitTag.status).toBe('skipped_dry_run');
         expect(result.components.chromeSubmission.status).toBe('skipped_dry_run');
         expect(result.components.hostedCommit.status).toBe('skipped_dry_run');
-        expect(result.components.notification.status).toBe('skipped_dry_run');
     });
 
-    it('reports a required component failure without collapsing it into notification status', () => {
+    it('reports a required component failure without collapsing skipped production components into it', () => {
         const result = resultFor(true);
         succeedRequired(result, REQUIRED_DRY_RUN_COMPONENTS);
         recordComponent(result, 'compile', 'failure', 'Compile failed.');
@@ -75,18 +73,7 @@ describe('release result model', () => {
 
         expect(result.overallStatus).toBe('failure');
         expect(result.components.compile.status).toBe('failure');
-        expect(result.components.notification.status).toBe('skipped_dry_run');
-    });
-
-    it('keeps optional notification failure as success with warnings', () => {
-        const result = resultFor(false);
-        succeedRequired(result, REQUIRED_PRODUCTION_COMPONENTS);
-        recordComponent(result, 'notification', 'warning', 'SMTP failed.');
-
-        finalizeReleaseResult(result);
-
-        expect(result.overallStatus).toBe('success_with_warnings');
-        expect(result.errorSummary).toMatch(/optional notification/);
+        expect(result.components.hostedCommit.status).toBe('skipped_dry_run');
     });
 
     it('reports ambiguous external state separately', () => {

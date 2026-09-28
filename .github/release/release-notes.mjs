@@ -11,15 +11,6 @@ export function collectReleaseNotes(version) {
     };
 }
 
-export function collectUnreleasedNotes(version) {
-    const previousTag = tryRunGit(['describe', '--tags', '--abbrev=0', 'HEAD']);
-    return {
-        version,
-        publishedAt: new Date().toISOString().slice(0, 10),
-        items: getReleaseCommits(previousTag ? `${previousTag}..HEAD` : 'HEAD').map(commit => commit.subject),
-    };
-}
-
 function getReleaseCommits(range) {
     const output = runGit(['log', '--format=%x1e%an%x1f%s', '--name-only', range]);
     return parseCommits(output).filter(isUserFacingCommit);

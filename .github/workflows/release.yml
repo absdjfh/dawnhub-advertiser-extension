@@ -70,9 +70,6 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            .github/release/package-lock.json
 
       - name: Initialize machine-readable result
         run: node .github/release/cli.mjs init
@@ -225,19 +222,6 @@ jobs:
         run: node .github/release/cli.mjs commit-hosted
         env:
           RELEASE_GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Send optional release-note notifications
-        id: notification
-        if: ${{ inputs.dryRun == false && steps.hosted_commit.outcome == 'success' }}
-        continue-on-error: true
-        run: node .github/release/cli.mjs run notification
-        env:
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          RELEASE_NOTES_EMAIL_TO: ${{ secrets.RELEASE_NOTES_EMAIL_TO }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
 
       - name: Finalize result and job summary
         if: ${{ always() }}

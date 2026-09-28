@@ -14,7 +14,6 @@ const RESULT_STATUSES = new Set([
     'success',
     'failure',
     'ambiguous',
-    'warning',
     'skipped_dry_run',
     'skipped_dependency',
 ]);
@@ -105,9 +104,6 @@ export function finalizeReleaseResult(result, timestamp = new Date().toISOString
     } else if (failed.length > 0) {
         result.overallStatus = 'failure';
         result.errorSummary = safeSummary(`Required components did not succeed: ${failed.join(', ')}.`);
-    } else if (result.components.notification.status === 'warning') {
-        result.overallStatus = 'success_with_warnings';
-        result.errorSummary = 'Release completed, but the optional notification failed.';
     } else {
         result.overallStatus = 'success';
         result.errorSummary = null;

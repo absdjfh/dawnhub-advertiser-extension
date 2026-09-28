@@ -302,7 +302,7 @@ async function finalize() {
         await appendFile(stepSummary, `${renderJobSummary(result)}\n`, 'utf8');
     }
     console.log(`Release result: ${result.overallStatus}`);
-    if (!['success', 'success_with_warnings'].includes(result.overallStatus)) {
+    if (result.overallStatus !== 'success') {
         throw new Error('Release policy did not reach a successful overall result.');
     }
 }
@@ -344,7 +344,6 @@ async function reconcile() {
         if (RECONCILABLE_COMPONENTS.some(component => isRunAction(reconcileInputs.actions[component]))) {
             const runner = createCommandRunner();
             runner.run('npm', ['ci']);
-            runner.run('npm', ['ci', '--prefix', '.github/release']);
             runner.run('npm', ['run', 'build']);
             runner.run('npm', ['run', 'zip']);
         }
@@ -363,9 +362,7 @@ async function reconcile() {
         };
         for (const component of RECONCILABLE_COMPONENTS) {
             const action = reconcileInputs.actions[component];
-            if (action === 'skip') {
-                recordComponent(result, component, 'warning', 'Skipped by operator choice.');
-            } else if (isRunAction(action) && component === 'hostedCommit') {
+            if (isRunAction(action) && component === 'hostedCommit') {
                 // Unlike every other reconcilable component, hostedCommit is a
                 // guarded Git push rather than a configured command operation.
                 // It targets the hosted branch, so unrelated commits landing on
@@ -386,7 +383,7 @@ async function reconcile() {
 }
 
 function isRunAction(action) {
-    return !action.startsWith('already-') && action !== 'skip';
+    return !action.startsWith('already-');
 }
 
 function readReconcileInputs() {
@@ -396,7 +393,6 @@ function readReconcileInputs() {
             chromeSubmission: process.env.RECONCILE_CHROME_SUBMISSION_ACTION,
             hostedGeneration: process.env.RECONCILE_HOSTED_GENERATION_ACTION,
             hostedCommit: process.env.RECONCILE_HOSTED_COMMIT_ACTION,
-            notification: process.env.RECONCILE_NOTIFICATION_ACTION,
         },
     });
 }

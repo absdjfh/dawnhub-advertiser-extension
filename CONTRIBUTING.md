@@ -14,8 +14,7 @@ npm run lint
 npm run compile
 ```
 
-The release scripts in `.github/release` have their own dependencies. Only when working on them, run
-`npm ci --prefix .github/release`; `npm run test:release` does not need it.
+The release scripts in `.github/release` use only Node built-ins; test them with `npm run test:release`.
 
 ## Adding or changing a feature
 

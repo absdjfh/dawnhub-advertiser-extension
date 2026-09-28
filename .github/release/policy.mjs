@@ -1,8 +1,9 @@
 // 1.1 adds sourceShaOrigin/releaseIntentIdOrigin. 1.2 replaces
 // requestedVersionBump with releaseDate, now that versions come from the
-// calendar. The intent-marker schema in git-release.mjs is versioned separately
-// and is still 1.0.
-export const RELEASE_RESULT_SCHEMA_VERSION = '1.2';
+// calendar. 1.3 drops the notification component, the warning status, and the
+// success_with_warnings overall status. The intent-marker schema in
+// git-release.mjs is versioned separately and is still 1.0.
+export const RELEASE_RESULT_SCHEMA_VERSION = '1.3';
 export const AUTHORITATIVE_BRANCH = 'master';
 export const RELEASE_PROFILE = 'full';
 export const RELEASE_REPOSITORY = 'absdjfh/dawnhub-advertiser-extension';
@@ -47,7 +48,6 @@ export const COMPONENTS = Object.freeze([
     'chromeSubmission',
     'hostedGeneration',
     'hostedCommit',
-    'notification',
 ]);
 
 const BASE_OPERATIONS = Object.freeze([
@@ -66,14 +66,12 @@ export const PRODUCTION_OPERATIONS = Object.freeze([
     'chromeSubmission',
     'hostedGeneration',
     'hostedCommit',
-    'notification',
 ]);
 
 export const PRODUCTION_MUTATIONS = Object.freeze([
     'versionCommitTag',
     'chromeSubmission',
     'hostedCommit',
-    'notification',
 ]);
 
 export const REQUIRED_DRY_RUN_COMPONENTS = Object.freeze([
@@ -85,7 +83,7 @@ export const REQUIRED_DRY_RUN_COMPONENTS = Object.freeze([
 
 export const REQUIRED_PRODUCTION_COMPONENTS = Object.freeze([
     ...REQUIRED_DRY_RUN_COMPONENTS,
-    ...PRODUCTION_OPERATIONS.filter(component => component !== 'notification'),
+    ...PRODUCTION_OPERATIONS,
 ]);
 
 // The reconciliation job never redoes pre-boundary validation and never
@@ -98,7 +96,6 @@ export const RECONCILE_ACTIONS = Object.freeze({
     chromeSubmission: ALREADY_OR_RUN,
     hostedGeneration: Object.freeze(['already-generated', 'generate-now']),
     hostedCommit: Object.freeze(['already-committed', 'commit-now']),
-    notification: Object.freeze(['already-sent', 'send-now', 'skip']),
 });
 
 export const RECONCILABLE_COMPONENTS = Object.freeze(Object.keys(RECONCILE_ACTIONS));

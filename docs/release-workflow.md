@@ -37,7 +37,6 @@ Every run performs the following from the disposable exact-SHA checkout:
 
 ```sh
 npm ci
-npm ci --prefix .github/release
 npm audit --omit=dev
 npm run lint
 npm run compile
@@ -46,7 +45,7 @@ npm run build
 npm run zip
 ```
 
-The release scripts' own dependency (`nodemailer` and its types) lives in `.github/release/package.json` with its own lockfile, so the extension's `npm ci`, `compile` and `build` never install it. `npm audit --omit=dev` covers only the extension's packages. Callers cannot disable a check or skip the Chrome package.
+The release scripts use only Node built-ins, so they have no dependencies of their own. Callers cannot disable a check or skip the Chrome package.
 
 There are no Firefox targets, so there is nothing to sign on AMO and no XPI or `updates.json` feed to host. The extension is Chrome-only because its features are free to use Chrome's built-in AI (the Prompt API), which Firefox doesn't have.
 
@@ -68,7 +67,7 @@ Before dependency installation or release-side effects, the helper:
 
 Immediately before each Git write, the helper reads the remote ref again. The version push uses an exact `refs/heads/master:<approved source SHA>` force-with-lease guard, and the hosted-files push leases against the SHA the `hosted` branch had when it was seeded. A moved branch fails closed and is never overwritten.
 
-The workflow declares only `contents: write`. Chrome Web Store and notification secrets are exposed only to their production-only steps. Checkout does not persist Git credentials.
+The workflow declares only `contents: write`. Chrome Web Store secrets are exposed only to their production-only steps. Checkout does not persist Git credentials.
 
 ## Hosted files and retention
 
@@ -88,7 +87,7 @@ Site-only changes (a guide or privacy policy edit) go live with the next release
 
 `dryRun=true` is a no-write rehearsal. It validates the input/source/intent, applies the proposed version only in the disposable checkout, runs the fixed audit/check/build/package policy, and emits a result JSON artifact plus a job summary.
 
-It does not create a commit or tag, push Git refs, create an intent marker, submit to the Chrome Web Store, require store credentials, generate/commit/push hosted files, or send notifications. The release-policy tests execute this plan through a fake command runner; workflow-structure tests independently require every production step to have a `dryRun == false` guard.
+It does not create a commit or tag, push Git refs, create an intent marker, submit to the Chrome Web Store, require store credentials, or generate/commit/push hosted files. The release-policy tests execute this plan through a fake command runner; workflow-structure tests independently require every production step to have a `dryRun == false` guard.
 
 ## Concurrency, intent markers, and the irreversible boundary
 
@@ -111,22 +110,19 @@ At or after the boundary, never blindly rerun or create a replacement intent. In
 
 1. Find the run by `releaseIntentId` in the run name, and download its `release-result-<run ID>` artifact when available.
 2. Fetch and inspect `release-intent/<id>`, `v<version>`, and `origin/master`.
-3. Check the Chrome Web Store Developer Dashboard for the version, the `hosted` branch and site, and the notification channels for every `ambiguous`, `failure`, or `skipped_dependency` component.
+3. Check the Chrome Web Store Developer Dashboard for the version, and the `hosted` branch and site for every `ambiguous`, `failure`, or `skipped_dependency` component.
 4. Treat missing result metadata from a cancelled or timed-out run as ambiguous if the intent marker exists.
 
 Then dispatch `.github/workflows/release-reconcile.yml` with the accepted `releaseIntentId` and one explicit choice per post-boundary component:
 
 - Chrome submission: `already-succeeded` or `not-attempted`.
 - Hosted generation and hosted commit: `already-generated`/`already-committed` or `generate-now`/`commit-now`.
-- Notification: `already-sent`, `send-now`, or `skip`.
 
 Every input defaults to `unspecified` and the job refuses to run with any component left on that default. It reads the source, version, and intent straight off the accepted marker, checks out that exact version commit, and shares the production concurrency lane. There is deliberately no "resubmit if unsure" option for the store submission: a wrong guess there is the one mistake this workflow cannot undo.
 
-Notification is optional: its failure produces `success_with_warnings` and never hides a store or hosted failure.
-
 ## Result metadata
 
-The workflow always attempts to write `.output/release-result.json`, upload it as `release-result-<run ID>`, and render the same component table in the job summary: schema version, intent and its origin, approved source and its origin, release date, versions, commit/tag/marker, run identity, per-component statuses with bounded, redacted summaries, and an overall `success`, `success_with_warnings`, `failure`, or `ambiguous` status.
+The workflow always attempts to write `.output/release-result.json`, upload it as `release-result-<run ID>`, and render the same component table in the job summary: schema version, intent and its origin, approved source and its origin, release date, versions, commit/tag/marker, run identity, per-component statuses with bounded, redacted summaries, and an overall `success`, `failure`, or `ambiguous` status.
 
 ## One-time setup
 
@@ -149,8 +145,6 @@ The store API can only update an item that already exists, and a new item needs 
 | `CHROME_EXTENSION_ID` | The new item's ID from the Developer Dashboard. |
 | `CHROME_PUBLISHER_ID` | The publisher ID of the developer account. |
 | `CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL`, `CHROME_SERVICE_ACCOUNT_PRIVATE_KEY` | The service account the Chrome Web Store API v2 publishes with. It is linked to the publisher account, not to one item. |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `RELEASE_NOTES_EMAIL_TO` | Optional: release-note email. Skipped unless all five are set. |
-| `DISCORD_WEBHOOK_URL` | Optional: release-note post to a Discord channel. Skipped when unset. |
 
 ### Hosted site
 

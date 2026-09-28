@@ -44,5 +44,4 @@ gh workflow run release.yml --ref master -f dryRun=false
 
 There is no version to choose: every release is `<two-digit year>.<month>.<release number within that month>`. The
 first release needs a one-time setup (Chrome Web Store item, repository secrets, Cloudflare Pages) - see
-[One-time setup](docs/release-workflow.md#one-time-setup). After `npm ci --prefix .github/release`,
-`npm run release-notes` previews the automatically generated release notes.
+[One-time setup](docs/release-workflow.md#one-time-setup).

@@ -7,7 +7,7 @@ import {recordComponent} from './result.mjs';
 export const OPERATION_DEFINITIONS = Object.freeze({
     dependencies: {
         component: 'dependencies',
-        commands: [['npm', ['ci']], ['npm', ['ci', '--prefix', '.github/release']]],
+        commands: [['npm', ['ci']]],
         failureStatus: 'failure',
     },
     audit: {
@@ -81,14 +81,6 @@ export const OPERATION_DEFINITIONS = Object.freeze({
         ]],
         failureStatus: 'ambiguous',
     },
-    notification: {
-        component: 'notification',
-        productionOnly: true,
-        mutatesProduction: true,
-        // Each channel (email, Discord) is used only when its secrets are configured - see notify-release.mjs.
-        commands: [['node', ['.github/release/notify-release.mjs']]],
-        failureStatus: 'warning',
-    },
 });
 
 export function createCommandRunner() {
@@ -132,9 +124,7 @@ export function runConfiguredOperation(operation, inputs, result, runner = creat
         const status = definition.failureStatus;
         const summary = status === 'ambiguous'
             ? `${operation} may have changed external state; reconcile before retrying.`
-            : status === 'warning'
-                ? `${operation} failed without changing required store-release status.`
-                : `${operation} failed before its required outcome was established.`;
+            : `${operation} failed before its required outcome was established.`;
         recordComponent(result, definition.component, status, summary);
         throw error;
     }
@@ -195,7 +185,6 @@ function operationSuccessSummary(operation) {
         chromeCredentialValidation: 'Chrome credentials passed the non-submitting validation command.',
         chromeSubmission: 'Chrome submission command completed.',
         hostedGeneration: 'Hosted release files were generated in the workspace.',
-        notification: 'Release notes were sent to every configured notification channel.',
     };
     return summaries[operation] ?? `${operation} completed.`;
 }

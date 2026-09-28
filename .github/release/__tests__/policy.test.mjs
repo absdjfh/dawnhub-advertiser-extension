@@ -148,7 +148,7 @@ describe('reconcile input policy', () => {
     });
 
     it('reconciles exactly the components that follow the irreversible boundary', () => {
-        expect(RECONCILABLE_COMPONENTS).toEqual(['chromeSubmission', 'hostedGeneration', 'hostedCommit', 'notification']);
+        expect(RECONCILABLE_COMPONENTS).toEqual(['chromeSubmission', 'hostedGeneration', 'hostedCommit']);
     });
 });
 
@@ -277,7 +277,6 @@ describe('fixed release plan', () => {
         const commandLines = calls.map(call => [call.file, ...call.args].join(' '));
         expect(commandLines).toEqual(expect.arrayContaining([
             'npm ci',
-            'npm ci --prefix .github/release',
             'npm version 26.8.2 --no-git-tag-version',
             'npm audit --omit=dev',
             'npm run lint',
@@ -286,7 +285,7 @@ describe('fixed release plan', () => {
             'npm run build',
             'npm run zip',
         ]));
-        expect(commandLines.join('\n')).not.toMatch(/git (?:push|tag)|wxt submit|publish-hosted-release|notify-release/);
+        expect(commandLines.join('\n')).not.toMatch(/git (?:push|tag)|wxt submit|publish-hosted-release/);
         expect(calls.every(call => Object.keys(call.environment).length === 0)).toBe(true);
     });
 
@@ -301,8 +300,8 @@ describe('fixed release plan', () => {
             'chromeBuildPackage',
             'chromeSubmission',
             'hostedCommit',
-            'notification',
         ]));
+        expect(plan.operations).not.toContain('notification');
         expect(plan.operations.filter(operation => /firefox/i.test(operation))).toEqual([]);
     });
 

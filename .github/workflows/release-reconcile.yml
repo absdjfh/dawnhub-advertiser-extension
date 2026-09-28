@@ -32,12 +32,6 @@ on:
         type: choice
         default: unspecified
         options: [unspecified, already-committed, commit-now]
-      notificationAction:
-        description: Release-note notifications
-        required: true
-        type: choice
-        default: unspecified
-        options: [unspecified, already-sent, send-now, skip]
 
 # Reconciliation can submit to stores and push hosted files, exactly like the
 # release workflow, so it shares the same non-cancelling production lane and
@@ -71,9 +65,6 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            .github/release/package-lock.json
 
       - name: Initialize machine-readable result
         run: node .github/release/cli.mjs init
@@ -87,7 +78,6 @@ jobs:
           RECONCILE_CHROME_SUBMISSION_ACTION: ${{ inputs.chromeSubmissionAction }}
           RECONCILE_HOSTED_GENERATION_ACTION: ${{ inputs.hostedGenerationAction }}
           RECONCILE_HOSTED_COMMIT_ACTION: ${{ inputs.hostedCommitAction }}
-          RECONCILE_NOTIFICATION_ACTION: ${{ inputs.notificationAction }}
           RELEASE_GITHUB_TOKEN: ${{ github.token }}
           CHROME_API_VERSION: v2
           CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
@@ -98,12 +88,6 @@ jobs:
           CHROME_SKIP_REVIEW: 'false'
           CHROME_PUBLISH_TYPE: DEFAULT_PUBLISH
           CHROME_DEPLOY_PERCENTAGE: '100'
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          RELEASE_NOTES_EMAIL_TO: ${{ secrets.RELEASE_NOTES_EMAIL_TO }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
 
       - name: Finalize result and job summary
         if: ${{ always() }}

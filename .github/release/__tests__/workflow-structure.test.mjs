@@ -78,7 +78,6 @@ describe('release workflow structure', () => {
             'Restore hosted files from the hosted branch',
             'Generate hosted release files in the workspace',
             'Commit and guarded-push hosted release files',
-            'Send optional release-note notifications',
         ]) {
             const block = stepBlock(stepName);
             expect(block, stepName).toContain('inputs.dryRun == false');
@@ -93,7 +92,7 @@ describe('release workflow structure', () => {
     });
 
     it('cannot disable required checks or configured production targets', () => {
-        expect(OPERATION_DEFINITIONS.dependencies.commands).toEqual([['npm', ['ci']], ['npm', ['ci', '--prefix', '.github/release']]]);
+        expect(OPERATION_DEFINITIONS.dependencies.commands).toEqual([['npm', ['ci']]]);
         expect(OPERATION_DEFINITIONS.lint.commands).toEqual([['npm', ['run', 'lint']]]);
         expect(OPERATION_DEFINITIONS.compile.commands).toEqual([['npm', ['run', 'compile']]]);
         expect(OPERATION_DEFINITIONS.tests.commands).toEqual([['npm', ['run', 'test', '--', '--run']]]);
@@ -106,7 +105,6 @@ describe('release workflow structure', () => {
     it('runs every required check, build, and package command in CI with cached lockfiles', () => {
         for (const command of [
             'npm ci',
-            'npm ci --prefix .github/release',
             'npm run lint',
             'npm run compile',
             'npm run test -- --run',
@@ -117,28 +115,23 @@ describe('release workflow structure', () => {
             expect(ci.split(/\r?\n/), command).toContain(`      - run: ${command}`);
         }
         expect(ci).toContain('cache: npm');
-        expect(ci).toContain('.github/release/package-lock.json');
     });
 
-    it('keeps release-only dependencies out of the extension manifest and caches both lockfiles', () => {
-        const root = JSON.parse(readFileSync(resolve('package.json'), 'utf8'));
-        const release = JSON.parse(readFileSync(resolve('.github/release/package.json'), 'utf8'));
-        const rootNames = Object.keys({...root.dependencies, ...root.devDependencies});
-        for (const name of ['jsonwebtoken', 'nodemailer', '@types/jsonwebtoken', '@types/nodemailer']) {
-            expect(rootNames, name).not.toContain(name);
+    it('sends no release notifications and needs no release-only dependencies', () => {
+        const reconcile = readFileSync(resolve('.github/workflows/release-reconcile.yml'), 'utf8');
+        for (const text of [workflow, reconcile, ci]) {
+            expect(text).not.toMatch(/SMTP_|RELEASE_NOTES_EMAIL_TO|DISCORD_WEBHOOK_URL|notification/i);
+            expect(text).not.toContain('.github/release/package-lock.json');
         }
-        expect(Object.keys(release.dependencies)).toEqual(['nodemailer']);
-        expect(existsSync(resolve('.github/release/package-lock.json'))).toBe(true);
-        for (const text of [workflow, readFileSync(resolve('.github/workflows/release-reconcile.yml'), 'utf8')]) {
-            expect(text).toContain('.github/release/package-lock.json');
-        }
+        expect(OPERATION_DEFINITIONS).not.toHaveProperty('notification');
+        expect(existsSync(resolve('.github/release/package.json'))).toBe(false);
     });
 
     it('keeps all release executables in the dependency-free mjs module', () => {
         expect(OPERATION_DEFINITIONS.hostedGeneration.commands[0][1]).toEqual(['.github/release/publish-hosted-release.mjs']);
-        expect(OPERATION_DEFINITIONS.notification.commands[0][1]).toEqual(['.github/release/notify-release.mjs']);
 
         for (const oldPath of [
+            '.github/release/notify-release.mjs',
             '.github/release/fetch-firefox-xpi.mjs',
             '.github/firefox-fetch-xpi.ts',
             '.github/publish-hosted-release.ts',
