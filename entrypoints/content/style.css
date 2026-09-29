@@ -831,6 +831,27 @@ body:has([aria-label="toggle dark mode"] [data-testid="LightModeIcon"]) .dat-rai
     font-weight: 700;
 }
 
+/* Why a raid may not take the booking (see run-fit.ts) - flowing on after the raid's own text, so a long curve
+   row wraps as one, and colored like Dawnhub's sold-out red when it can't, amber when it can't be told yet. */
+.dat-fit-mark {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.dat-fit-misfit {
+    background: #fef3f2;
+    color: #d92d20;
+}
+
+.dat-fit-check {
+    background: #fffaeb;
+    color: #b54708;
+}
+
 .dat-boss-options {
     display: flex;
     flex-wrap: wrap;

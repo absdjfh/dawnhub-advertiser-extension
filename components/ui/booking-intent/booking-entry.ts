@@ -1,4 +1,5 @@
 import type {BookingIntentBooking} from "@/components/booking-intent/booking-intent";
+import type {ArmorType} from "@/components/wow-classes";
 
 /**
  * One booking the fill booking panel is collecting, as its own set of fields (see BookingIntentEntry.vue). A
@@ -23,6 +24,9 @@ export interface BookingEntry {
     mentionedCurveBoss: string
     /** Which of the picked raid's bosses are ticked right now - what's ticked on the booking form. */
     checkedCurveBosses: string[]
+    /** The armor type the message gave for this character, kept as read - "" when it gave none. Nothing is
+     *  filled in from it; it's only what a VIP raid's remaining armor types are checked against (see run-fit.ts). */
+    mentionedArmorType: ArmorType | ""
     /** Set once the advertiser ticks a box themselves, so a message read afterwards leaves their choice alone.
      *  Reset whenever the picked raid changes, since the boxes then stand for a different raid's bosses. */
     curveBossesPickedByHand: boolean
@@ -46,6 +50,7 @@ export function createBookingEntry(raidId: string): BookingEntry {
         price: "",
         mentionedCurveBoss: "",
         checkedCurveBosses: [],
+        mentionedArmorType: "",
         curveBossesPickedByHand: false,
         opened: false,
         error: ""
@@ -55,11 +60,13 @@ export function createBookingEntry(raidId: string): BookingEntry {
 /**
  * Fills what was read for one booking into an entry, leaving anything already filled in by hand alone - the
  * on-device model can be slow (or unavailable), so the advertiser is free to type into an entry while it's still
- * reading, and what they typed always wins. The boss is stored as read either way, and BookingIntentEntry.vue
- * decides whether that still moves the ticks (curveBossesPickedByHand).
+ * reading, and what they typed always wins. The boss and the armor type are stored as read either way - neither
+ * is a field on screen to type over, and BookingIntentEntry.vue decides whether the boss still moves the ticks
+ * (curveBossesPickedByHand).
  */
 export function fillBookingEntry(entry: BookingEntry, booking: BookingIntentBooking) {
     entry.mentionedCurveBoss = booking.mentionedCurveBoss
+    entry.mentionedArmorType = booking.mentionedArmorType
     if (!entry.raidPickedByHand && booking.raidId) entry.raidId = booking.raidId
     if (!entry.nameRealm) entry.nameRealm = booking.nameRealm
     if (!entry.price) entry.price = booking.price

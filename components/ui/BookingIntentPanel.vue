@@ -265,6 +265,7 @@ async function openEntry(entry: BookingEntry, fields: BookingFillFields) {
                     v-for="(entry, index) in entries"
                     :key="entry.key"
                     :entry="entry"
+                    :bookings="entries"
                     :label="`Booking ${index + 1}`"
                     :raid-options="raidOptions"
                     :raid-list-trimmed="isRaidListTrimmed"

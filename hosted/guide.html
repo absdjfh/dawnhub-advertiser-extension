@@ -97,7 +97,7 @@
                         <tbody>
                         <tr><td>Raid time, name, difficulty, loot type</td><td>Picking the raid. The chat's own message timestamps are ignored. Naming an armor type ("mail at 21:30?") counts as asking for VIP.</td></tr>
                         <tr><td>Curve boss</td><td>Which boss of a curve raid to tick, including the shorthand buyers use ("Coiled", "Ula"), or both. Every boss stays ticked when the DM names none.</td></tr>
-                        <tr><td>Class or armor type</td><td>Skipping any VIP raid that already sold the buyer's armor type.</td></tr>
+                        <tr><td>Class or armor type</td><td>Skipping any VIP raid that already sold the buyer's armor type, and marking it in the raid list if you pick one anyway.</td></tr>
                         <tr><td>Price</td><td>The <strong>Pot</strong> field, in thousands of gold: "300k" becomes 300 and "1.5m" becomes 1500. Only when the DM names a price.</td></tr>
                         <tr><td>Name-Realm</td><td>The <strong>Name-Realm</strong> field, only when the buyer clearly wrote it out. Never taken from the sender's display name.</td></tr>
                         </tbody>
@@ -133,6 +133,7 @@
 
                     <h3 id="filling">Checking and filling</h3>
                     <p>Fields fill in automatically only while they're empty, and a small spinner next to a field means it's still being read. Check the Name-Realm spelling especially after a screenshot. Pot is a number in thousands of gold; leave it blank to keep whatever Dawnhub puts there. The raid list shows how full each raid is, and marks a sold-out curve boss in red.</p>
+                    <p>Raids that may not suit the buyer are marked in each booking's raid list; hover a mark for the reason. <strong>Room for 1 of 2</strong> means the raid can't take every character in the window &mdash; on a curve raid each boss is counted on its own, so only the bosses those characters are booked on are marked (for example <strong>Ula'tek full</strong>). On a VIP raid, <strong>Plate taken</strong> means the buyer's armor type is sold already, and two characters of the same armor type can't both go. That goes by the class or armor type the DM names; while it names neither, a VIP raid that has sold any armor type is marked <strong>Check class</strong>. Marked raids can still be picked.</p>
                     <p><strong>Open &amp; fill</strong> opens the raid's booking page in a new tab and fills its form as soon as it appears, even when that raid is already open in this tab, so each booking gets a form of its own.</p>
                     <p>Only <strong>Name-Realm</strong>, <strong>Pot</strong> and, on a curve raid, the <strong>Bosses</strong> ticked in the window are filled in. The extension then clicks Dawnhub's own magnifying glass next to Name-Realm, so Dawnhub looks the character up and fills in its class. Everything else is left as it is.</p>
                     <div class="callout callout-warning">
