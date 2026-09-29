@@ -1,5 +1,5 @@
 import type {RaidData} from "@/components/api/dawn-api";
-import {ARMOR_TYPES, findWowClass, type ArmorType, type LootType, type RaidDifficulty} from "@/components/wow-classes";
+import {ARMOR_TYPES, findWowClass, isArmorType, type ArmorType, type LootType, type RaidDifficulty} from "@/components/wow-classes";
 import {capitalize, getBookedArmorTypes, getRaidName, hasOpenSlots} from "@/utils/raid-utils";
 import {formatRaidTime, getRaidInstant} from "@/utils/raid-time";
 import {checkPromptApiAvailability, createRequestSession} from "@/components/booking-intent/prompt-api";
@@ -37,13 +37,11 @@ export interface OpenRaidSummary {
      *  empty for every other raid type, which has no boss to choose. Both the vocabulary the model picks a
      *  mentioned boss from and what that answer is resolved against afterwards (see resolveCurveBoss). */
     curveBosses: string[]
-    /** Which armor types are still unbooked, comma-separated (e.g. "Mail, Plate") - "" for a raid where every
-     *  armor type still applies (only VIP raids sell by armor type in the first place). Only shown in the
-     *  panel's raid list, to tell apart same-time, same-raid VIP entries differing only in what's left to sell. */
-    availableArmorTypes: string
-    /** Armor types a VIP raid already sold - internal only, used to never auto-pick a VIP raid for a buyer
-     *  whose armor type it can no longer take. Empty for every other raid. */
-    bookedArmorTypes: ArmorType[]
+    /** The armor types a VIP raid still has to sell, in ARMOR_TYPES order - null for every other raid, which
+     *  doesn't sell by armor type at all. Shown in the panel's raid list, to tell apart same-time, same-raid
+     *  VIP entries differing only in what's left to sell, and what a buyer's armor type is checked against
+     *  both when matching (see canTakeBuyer) and on screen (see run-fit.ts). */
+    openArmorTypes: ArmorType[] | null
     /** Absolute ms timestamp - internal only (never shown or sent to the model), used to prefer sooner raids
      *  when matching. See proximityScore(). */
     instant: number
@@ -66,6 +64,10 @@ export interface BookingIntentBooking {
      *  purpose: the raid can still be changed by hand in the panel before the booking is opened, so which of
      *  that raid's bosses this means is only settled at that point (see resolveCurveBoss). */
     mentionedCurveBoss: string
+    /** The armor type the message gives for this character - named outright ("any mail spots?") or implied by
+     *  the class it names - "" when it gives neither. What a VIP raid's remaining armor types are checked
+     *  against in the panel, the same way matching checks them here (see run-fit.ts). */
+    mentionedArmorType: ArmorType | ""
 }
 
 export type BookingIntentResult =
@@ -142,30 +144,27 @@ function raidFullness(raid: RaidData): RaidFullness[] {
     return counts.map(count => ({...count, emphasis: fullnessEmphasis(count, counts)}))
 }
 
-/** Only meaningful for VIP raids, which sell one armor type at a time - "" for anything else. */
-function availableArmorTypesLabel(raid: RaidData, booked: Set<ArmorType>): string {
-    if (raid.loot !== "vip") return ""
-    return ARMOR_TYPES.filter(armorType => !booked.has(armorType)).map(capitalize).join(", ")
+/** Only meaningful for VIP raids, which sell one armor type at a time - null for anything else. */
+function openArmorTypes(raid: RaidData): ArmorType[] | null {
+    if (raid.loot !== "vip") return null
+    const booked = getBookedArmorTypes(raid)
+    return ARMOR_TYPES.filter(armorType => !booked.has(armorType))
 }
 
 /** Every raid actually bookable right now - both what the model's reading is matched against and what backs
  *  the panel's raid list, before restrictOpenRaidsToProximityWindow narrows it down. */
 export function summarizeOpenRaids(raids: RaidData[]): OpenRaidSummary[] {
-    return raids.filter(raid => raid.status === "active" && hasOpenSlots(raid)).map(raid => {
-        const bookedArmorTypes = raid.loot === "vip" ? getBookedArmorTypes(raid) : new Set<ArmorType>()
-        return {
-            id: raid._id,
-            name: getRaidName(raid),
-            dateTime: formatRaidTime(raid),
-            instant: getRaidInstant(raid),
-            difficulty: capitalize(raid.difficulty),
-            loot: capitalize(raid.loot),
-            fullness: raidFullness(raid),
-            curveBosses: raid.type === "curve" ? (raid.curveSlots ?? []).map(slot => slot.name) : [],
-            availableArmorTypes: availableArmorTypesLabel(raid, bookedArmorTypes),
-            bookedArmorTypes: [...bookedArmorTypes]
-        }
-    })
+    return raids.filter(raid => raid.status === "active" && hasOpenSlots(raid)).map(raid => ({
+        id: raid._id,
+        name: getRaidName(raid),
+        dateTime: formatRaidTime(raid),
+        instant: getRaidInstant(raid),
+        difficulty: capitalize(raid.difficulty),
+        loot: capitalize(raid.loot),
+        fullness: raidFullness(raid),
+        curveBosses: raid.type === "curve" ? (raid.curveSlots ?? []).map(slot => slot.name) : [],
+        openArmorTypes: openArmorTypes(raid)
+    }))
 }
 
 /** Narrows down to raids starting within the proximity window - a buyer almost always asks about something
@@ -475,7 +474,7 @@ export function parsePrice(text: string): number | null {
 /** The buyer's armor type - the one directly mentioned (e.g. "mail at 11:00?") if there is one, else whatever
  *  their class implies. */
 function armorTypeFromExtracted(extracted: ExtractedBookingText): ArmorType | null {
-    if ((ARMOR_TYPES as string[]).includes(extracted.mentionedArmorType)) return extracted.mentionedArmorType as ArmorType
+    if (isArmorType(extracted.mentionedArmorType)) return extracted.mentionedArmorType
     return findWowClass(extracted.mentionedClass)?.armorType ?? null
 }
 
@@ -521,7 +520,7 @@ function scoreCandidate(raid: OpenRaidSummary, extracted: ExtractedBookingText):
 
 /** A VIP raid sells one buyer per armor type - once the buyer's is booked there, it's no longer theirs to take. */
 function canTakeBuyer(raid: OpenRaidSummary, buyerArmorType: ArmorType | null) {
-    return buyerArmorType === null || !raid.bookedArmorTypes.includes(buyerArmorType)
+    return buyerArmorType === null || raid.openArmorTypes === null || raid.openArmorTypes.includes(buyerArmorType)
 }
 
 /**
@@ -613,7 +612,8 @@ function buildResult(raw: unknown, openRaids: OpenRaidSummary[]): BookingIntentR
                 raidId: matchOpenRaid(booking, openRaids)?.id ?? "",
                 nameRealm: booking.nameRealm,
                 price: price === null ? "" : String(price),
-                mentionedCurveBoss: booking.mentionedCurveBoss
+                mentionedCurveBoss: booking.mentionedCurveBoss,
+                mentionedArmorType: armorTypeFromExtracted(booking) ?? ""
             }
         })
     }

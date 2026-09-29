@@ -13,6 +13,7 @@ import {
 } from "@/components/booking-intent/booking-intent";
 import {checkPromptApiAvailability, createRequestSession} from "@/components/booking-intent/prompt-api";
 import {recognizeScreenshotText} from "@/components/booking-intent/tesseract-ocr";
+import {ARMOR_TYPES} from "@/components/wow-classes";
 
 vi.mock("@/components/booking-intent/prompt-api", () => ({
     checkPromptApiAvailability: vi.fn(),
@@ -51,8 +52,7 @@ function openRaid(overrides: Partial<OpenRaidSummary> = {}): OpenRaidSummary {
         loot: "Saved",
         fullness: [{boss: "", booked: 2, slots: 10, emphasis: ""}],
         curveBosses: [],
-        availableArmorTypes: "",
-        bookedArmorTypes: [],
+        openArmorTypes: null,
         instant: Date.now(),
         ...overrides
     }
@@ -169,15 +169,13 @@ describe("summarizeOpenRaids", () => {
             bookedClasses: ["deathknight", "Priest"] // plate and cloth are taken, leather and mail remain
         })])
 
-        expect(summary!.availableArmorTypes).toBe("Leather, Mail")
-        expect(summary!.bookedArmorTypes).toStrictEqual(["plate", "cloth"])
+        expect(summary!.openArmorTypes).toStrictEqual(["leather", "mail"])
     })
 
-    it("leaves the armor types blank for a non-VIP raid, which doesn't sell by armor type", () => {
+    it("has no open armor types for a non-VIP raid, which doesn't sell by armor type", () => {
         const [summary] = summarizeOpenRaids([createRaid({loot: "saved", bookedClasses: ["deathknight"]})])
 
-        expect(summary!.availableArmorTypes).toBe("")
-        expect(summary!.bookedArmorTypes).toStrictEqual([])
+        expect(summary!.openArmorTypes).toBeNull()
     })
 })
 
@@ -325,7 +323,7 @@ describe("extractBookingIntentFromText", () => {
         vi.clearAllMocks()
     })
 
-    const vipRaid = (overrides: Partial<OpenRaidSummary> = {}) => openRaid({id: "vip-raid", name: "Tide & Venom Bundle", loot: "VIP", ...overrides})
+    const vipRaid = (overrides: Partial<OpenRaidSummary> = {}) => openRaid({id: "vip-raid", name: "Tide & Venom Bundle", loot: "VIP", openArmorTypes: [...ARMOR_TYPES], ...overrides})
     const savedRaid = () => openRaid({id: "saved-raid", name: "Venomous Abyss", loot: "Saved"})
     const curveRaid = () => openRaid({id: "curve-raid", name: "Venomous Abyss", curveBosses: ["The Coiled Altar", "Ula'tek"]})
 
@@ -409,8 +407,8 @@ describe("extractBookingIntentFromText", () => {
         promptMock.mockResolvedValue(reply({mentionedTime: "11:00", mentionedArmorType: "plate", nameRealm: "Kasper-Tarrenmill"}))
 
         const result = await extractBookingIntentFromText("dm text", [
-            vipRaid({id: "plate-sold", bookedArmorTypes: ["plate"]}),
-            vipRaid({id: "plate-open", bookedArmorTypes: ["cloth"]})
+            vipRaid({id: "plate-sold", openArmorTypes: ["cloth", "leather", "mail"]}),
+            vipRaid({id: "plate-open", openArmorTypes: ["leather", "mail", "plate"]})
         ])
 
         expect(result).toMatchObject({status: "read", bookings: [{raidId: "plate-open"}]})
@@ -420,11 +418,27 @@ describe("extractBookingIntentFromText", () => {
         promptMock.mockResolvedValue(reply({mentionedTime: "11:00", mentionedLoot: "vip", mentionedClass: "Death Knight"}))
 
         const result = await extractBookingIntentFromText("dm text", [
-            vipRaid({id: "plate-sold", bookedArmorTypes: ["plate"]}),
+            vipRaid({id: "plate-sold", openArmorTypes: ["cloth", "leather", "mail"]}),
             vipRaid({id: "plate-open"})
         ])
 
         expect(result).toMatchObject({status: "read", bookings: [{raidId: "plate-open"}]})
+    })
+
+    it("hands on each character's armor type, named outright or implied by its class", async () => {
+        promptMock.mockResolvedValue(replyWith(
+            booking({nameRealm: "Foo-Kazzak", mentionedArmorType: "mail", mentionedClass: "Death Knight"}),
+            booking({nameRealm: "Bar-TarrenMill", mentionedClass: "Priest"}),
+            booking({nameRealm: "Baz-Kazzak", mentionedClass: "Tinker"})
+        ))
+
+        const result = await extractBookingIntentFromText("dm text", [vipRaid()])
+
+        expect(result).toMatchObject({status: "read", bookings: [
+            {nameRealm: "Foo-Kazzak", mentionedArmorType: "mail"},
+            {nameRealm: "Bar-TarrenMill", mentionedArmorType: "cloth"},
+            {nameRealm: "Baz-Kazzak", mentionedArmorType: ""}
+        ]})
     })
 
     it("never picks a raid below the minimum match score, keeping what it did read", async () => {

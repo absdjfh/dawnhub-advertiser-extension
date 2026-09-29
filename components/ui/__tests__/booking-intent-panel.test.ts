@@ -29,8 +29,7 @@ function openRaid(id: string, overrides: Partial<OpenRaidSummary> = {}): OpenRai
         loot: "Unsaved",
         fullness: [{boss: "", booked: 10, slots: 20, emphasis: ""}],
         curveBosses: [],
-        availableArmorTypes: "",
-        bookedArmorTypes: [],
+        openArmorTypes: null,
         instant: 0,
         ...overrides
     }
@@ -49,23 +48,23 @@ const curveRaid = openRaid("raid-curve", {
 
 const openRaids = [
     openRaid("raid-undermine"),
-    openRaid("raid-palace", {name: "Nerub-ar Palace", dateTime: "21:30", loot: "VIP", availableArmorTypes: "Mail, Plate"}),
+    openRaid("raid-palace", {name: "Nerub-ar Palace", dateTime: "21:30", loot: "VIP", openArmorTypes: ["mail", "plate"]}),
     curveRaid
 ]
 
 /** A reading of one or more bookings, as extractBookingIntentFrom* answers it. */
 function read(...bookings: Partial<BookingIntentBooking>[]): BookingIntentResult {
-    return {status: "read", raw: {}, bookings: bookings.map(booking => ({raidId: "", nameRealm: "", price: "", mentionedCurveBoss: "", ...booking}))}
+    return {status: "read", raw: {}, bookings: bookings.map(booking => ({raidId: "", nameRealm: "", price: "", mentionedCurveBoss: "", mentionedArmorType: "", ...booking}))}
 }
 
 let openBooking: ReturnType<typeof vi.fn<(fields: BookingFillFields) => Promise<void>>>
 
 /** Attached to the page like the real panel, so a paste into one of its fields bubbles up to the document. */
-function mountPanel(props: {openRaids?: OpenRaidSummary[], preselectedRaidId?: string | null, initialImage?: Blob | null} = {}) {
+function mountPanel(props: {openRaids?: OpenRaidSummary[], allOpenRaids?: OpenRaidSummary[], preselectedRaidId?: string | null, initialImage?: Blob | null} = {}) {
     return mountVue(BookingIntentPanel, {
         props: {
             openRaids: props.openRaids ?? openRaids,
-            allOpenRaids: openRaids,
+            allOpenRaids: props.allOpenRaids ?? openRaids,
             preselectedRaidId: props.preselectedRaidId ?? null,
             initialImage: props.initialImage ?? null,
             openBooking
@@ -84,9 +83,9 @@ function booking(wrapper: VueWrapper, index = 0) {
     return found
 }
 
-/** The raid rows a booking shows, as their text. */
+/** The raid rows a booking shows, as their text - leaving out the marks on a raid that may not fit. */
 function raidRows(entry: DOMWrapper<Element>) {
-    return entry.findAll(".dat-raid-option").map(row => row.text())
+    return entry.findAll(".dat-raid-option-summary").map(row => row.text())
 }
 
 function pickedRaid(entry: DOMWrapper<Element>) {
@@ -442,6 +441,147 @@ describe("Fill booking panel", () => {
 
             expect(bookings(wrapper)).toHaveLength(1)
             expect(booking(wrapper).findAll("button").some(element => element.text() === "Remove")).toBe(false)
+        })
+    })
+
+    describe("raids that may not fit the buyer", () => {
+        const almostFullRaid = openRaid("raid-almost-full", {fullness: [{boss: "", booked: 19, slots: 20, emphasis: ""}]})
+        const fullBossRaid = openRaid("raid-curve", {
+            name: "Liberation of Undermine",
+            curveBosses: ["The Coiled Altar", "Ula'tek"],
+            fullness: [
+                {boss: "The Coiled Altar", booked: 3, slots: 4, emphasis: ""},
+                {boss: "Ula'tek", booked: 4, slots: 4, emphasis: "full"}
+            ]
+        })
+        /** Cloth and leather are sold already, mail and plate are still open. */
+        const vipRaid = openRaid("raid-vip", {loot: "VIP", openArmorTypes: ["mail", "plate"]})
+        const untouchedVipRaid = openRaid("raid-vip-untouched", {dateTime: "20:30", loot: "VIP", openArmorTypes: ["cloth", "leather", "mail", "plate"]})
+
+        function mountWith(raids: OpenRaidSummary[]) {
+            return mountPanel({openRaids: raids, allOpenRaids: raids})
+        }
+
+        /** The marks on every raid a booking shows, by raid id - [] for a raid that fits. */
+        function fitMarksOf(entry: DOMWrapper<Element>) {
+            return Object.fromEntries(entry.findAll(".dat-raid-option").map(row => [
+                (row.get("input").element as HTMLInputElement).value,
+                row.findAll(".dat-fit-mark").map(mark => mark.text())
+            ]))
+        }
+
+        async function pasteReading(...bookings: Partial<BookingIntentBooking>[]) {
+            extractFromTextMock.mockResolvedValue(read(...bookings))
+            paste(document, {text: "the message"})
+            await flushPromises()
+        }
+
+        it("should mark a raid without room for every character the message names, on every booking", async () => {
+            const wrapper = mountWith([almostFullRaid, openRaids[0]!])
+            expect(fitMarksOf(booking(wrapper))).toEqual({"raid-almost-full": [], "raid-undermine": []})
+
+            await pasteReading({nameRealm: "Foo-Kazzak"}, {nameRealm: "Bar-TarrenMill"})
+
+            expect(fitMarksOf(booking(wrapper, 0))).toEqual({"raid-almost-full": ["Room for 1 of 2"], "raid-undermine": []})
+            expect(fitMarksOf(booking(wrapper, 1))).toEqual({"raid-almost-full": ["Room for 1 of 2"], "raid-undermine": []})
+            expect(booking(wrapper).get(".dat-fit-mark").attributes("title"))
+                .toBe("2 characters in this panel need a spot, but only 1 is left.")
+        })
+
+        it("should keep marking a raid once one of the bookings has been opened", async () => {
+            const wrapper = mountWith([almostFullRaid])
+            await pasteReading({raidId: "raid-almost-full", nameRealm: "Foo-Kazzak"}, {raidId: "raid-almost-full", nameRealm: "Bar-TarrenMill"})
+
+            await button(booking(wrapper, 0), "Open & fill").trigger("click")
+            await flushPromises()
+
+            expect(fitMarksOf(booking(wrapper, 1))).toEqual({"raid-almost-full": ["Room for 1 of 2"]})
+        })
+
+        it("should mark a curve boss only for the bookings that take it", async () => {
+            const wrapper = mountWith([fullBossRaid])
+            // Nothing read yet, so the booking takes both bosses - and Ula'tek has no spot left.
+            expect(fitMarksOf(booking(wrapper))).toEqual({"raid-curve": ["Ula'tek full"]})
+
+            await pasteReading({raidId: "raid-curve", nameRealm: "Foo-Kazzak", mentionedCurveBoss: "Coiled"})
+
+            expect(fitMarksOf(booking(wrapper))).toEqual({"raid-curve": []})
+        })
+
+        it("should go by the bosses ticked for the raid a booking is set to", async () => {
+            const wrapper = mountWith([fullBossRaid])
+            await pasteReading({raidId: "raid-curve", nameRealm: "Foo-Kazzak", mentionedCurveBoss: "Coiled"})
+
+            const ulatek = booking(wrapper).findAll<HTMLInputElement>(".dat-boss-option input").find(box => box.element.value === "Ula'tek")!
+            await ulatek.setValue(true)
+
+            expect(fitMarksOf(booking(wrapper))).toEqual({"raid-curve": ["Ula'tek full"]})
+        })
+
+        describe("with one spot left on each curve boss", () => {
+            const roomyCurveRaid = openRaid("raid-curve", {
+                ...fullBossRaid,
+                fullness: [
+                    {boss: "The Coiled Altar", booked: 3, slots: 4, emphasis: ""},
+                    {boss: "Ula'tek", booked: 3, slots: 4, emphasis: ""}
+                ]
+            })
+
+            it("should fit two characters booked on different bosses", async () => {
+                const wrapper = mountWith([roomyCurveRaid])
+
+                await pasteReading(
+                    {raidId: "raid-curve", nameRealm: "Foo-Kazzak", mentionedCurveBoss: "Coiled"},
+                    {raidId: "raid-curve", nameRealm: "Bar-TarrenMill", mentionedCurveBoss: "Ula"}
+                )
+
+                expect(fitMarksOf(booking(wrapper, 0))).toEqual({"raid-curve": []})
+                expect(fitMarksOf(booking(wrapper, 1))).toEqual({"raid-curve": []})
+            })
+
+            it("should mark the boss two characters are both booked on", async () => {
+                const wrapper = mountWith([roomyCurveRaid])
+
+                await pasteReading(
+                    {raidId: "raid-curve", nameRealm: "Foo-Kazzak", mentionedCurveBoss: "Coiled"},
+                    {raidId: "raid-curve", nameRealm: "Bar-TarrenMill", mentionedCurveBoss: "Coiled"}
+                )
+
+                expect(fitMarksOf(booking(wrapper, 1))).toEqual({"raid-curve": ["Room for 1 of 2 on The Coiled Altar"]})
+            })
+        })
+
+        it("should ask to check the class on a VIP raid with armor types sold while the buyer's is unknown", () => {
+            const wrapper = mountWith([vipRaid, untouchedVipRaid])
+
+            expect(fitMarksOf(booking(wrapper))).toEqual({"raid-vip": ["Check class"], "raid-vip-untouched": []})
+        })
+
+        it("should mark a VIP raid that has sold the buyer's armor type already", async () => {
+            const wrapper = mountWith([vipRaid, untouchedVipRaid])
+
+            await pasteReading({nameRealm: "Foo-Kazzak", mentionedArmorType: "cloth"})
+
+            expect(fitMarksOf(booking(wrapper))).toEqual({"raid-vip": ["Cloth taken"], "raid-vip-untouched": []})
+        })
+
+        it("should not mark a VIP raid that still sells the buyer's armor type", async () => {
+            const wrapper = mountWith([vipRaid])
+
+            await pasteReading({nameRealm: "Foo-Kazzak", mentionedArmorType: "plate"})
+
+            expect(fitMarksOf(booking(wrapper))).toEqual({"raid-vip": []})
+        })
+
+        it("should mark a VIP raid two characters of the same armor type can't both go to", async () => {
+            const wrapper = mountWith([vipRaid])
+
+            await pasteReading(
+                {nameRealm: "Foo-Kazzak", mentionedArmorType: "plate"},
+                {nameRealm: "Bar-TarrenMill", mentionedArmorType: "plate"}
+            )
+
+            expect(fitMarksOf(booking(wrapper, 1))).toEqual({"raid-vip": ["Room for 1 of 2 Plate"]})
         })
     })
 

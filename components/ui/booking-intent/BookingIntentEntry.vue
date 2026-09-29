@@ -3,11 +3,15 @@ import {computed, nextTick, ref, watch} from "vue"
 import {curveBossChoices, resolveCurveBoss, type OpenRaidSummary, type RaidFullness} from "@/components/booking-intent/booking-intent"
 import type {BookingFillFields} from "@/components/booking-intent/pending-booking"
 import {BOTH_CURVE_BOSSES} from "@/host/dawnhub-booking-form"
+import {capitalize} from "@/utils/raid-utils"
 import type {BookingEntry} from "@/components/ui/booking-intent/booking-entry"
+import {runFitMarks} from "@/components/ui/booking-intent/run-fit"
 
 const props = defineProps<{
     /** The booking this collects - held by the panel, filled in here and by whatever it reads. */
     entry: BookingEntry
+    /** Every booking in the panel, this one included - a raid has to have room for all of them (see run-fit.ts). */
+    bookings: BookingEntry[]
     /** How this booking is named in the panel's list, e.g. "Booking 2". */
     label: string
     /** The raids to pick from, as the panel currently offers them. */
@@ -35,6 +39,11 @@ function raidLabel(option: OpenRaidSummary) {
     return `${option.dateTime} - ${option.name} - ${option.difficulty} ${option.loot}`
 }
 
+/** " - Mail, Plate" for a VIP raid, "" for one that doesn't sell by armor type. */
+function openArmorTypesLabel(option: OpenRaidSummary) {
+    return option.openArmorTypes ? ` - ${option.openArmorTypes.map(capitalize).join(", ")}` : ""
+}
+
 /** "Ula'tek: 4/4" for one boss of a curve raid, "4/10" for a raid sold whole rather than by boss. */
 function fullnessText(fullness: RaidFullness) {
     const count = `${fullness.booked}/${fullness.slots}`
@@ -58,6 +67,9 @@ const shownRaidOptions = computed(() => {
     if (picking.value) return props.raidOptions
     return props.raidOptions.filter(option => option.id === props.entry.raidId)
 })
+
+/** The raids on screen that may not take this booking, and why - see run-fit.ts. */
+const fitMarks = computed(() => new Map(shownRaidOptions.value.map(option => [option.id, runFitMarks(option, props.entry, props.bookings)])))
 
 // Settling on a raid closes the list again - whether it was clicked here or filled in from a message read
 // while this booking was still waiting for one.
@@ -156,7 +168,10 @@ function apply() {
             <div ref="raidList" class="dat-raid-options" role="radiogroup" aria-label="Raid">
                 <label v-for="option in shownRaidOptions" :key="option.id" class="dat-raid-option" :class="{'dat-raid-option-picked': option.id === entry.raidId}">
                     <input v-model="entry.raidId" type="radio" :name="raidGroupName" :value="option.id" @change="raidPicked">
-                    <span>{{ raidLabel(option) }} (<template v-for="(fullness, index) in option.fullness" :key="fullness.boss">{{ index > 0 ? ", " : "" }}<span :class="fullnessClass(fullness)">{{ fullnessText(fullness) }}</span></template>){{ option.availableArmorTypes ? ` - ${option.availableArmorTypes}` : "" }}</span>
+                    <span>
+                        <span class="dat-raid-option-summary">{{ raidLabel(option) }} (<template v-for="(fullness, index) in option.fullness" :key="fullness.boss">{{ index > 0 ? ", " : "" }}<span :class="fullnessClass(fullness)">{{ fullnessText(fullness) }}</span></template>){{ openArmorTypesLabel(option) }}</span>
+                        <span v-for="mark in fitMarks.get(option.id)" :key="mark.text" class="dat-fit-mark" :class="`dat-fit-${mark.kind}`" :title="mark.reason">{{ mark.text }}</span>
+                    </span>
                 </label>
                 <p v-if="shownRaidOptions.length === 0" class="dat-raid-options-empty">No open raids to pick from.</p>
             </div>
