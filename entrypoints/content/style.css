@@ -143,6 +143,20 @@ body:has([aria-label="toggle dark mode"] [data-testid="LightModeIcon"]) .dat-rai
     color: #90caf9;
 }
 
+/* A raid's likely start, on its own line under the time Dawnhub lists, when the raid before it is late. */
+.dat-raid-delay {
+    display: block;
+    font-size: 11px;
+    line-height: 1.2;
+    white-space: nowrap;
+    color: #e65100;
+    cursor: help;
+}
+
+body:has([aria-label="toggle dark mode"] [data-testid="LightModeIcon"]) .dat-raid-delay {
+    color: #ffb74d;
+}
+
 /* A ticked label, the way Material UI labels its own checkboxes. It joins the column Dawnhub stacks its own
    filter in, right above it, so it takes a full row of its own there, centered the way Dawnhub centers its
    own. currentColor keeps it legible in both of Dawnhub's themes. */

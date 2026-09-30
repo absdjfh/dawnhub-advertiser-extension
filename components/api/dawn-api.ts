@@ -22,6 +22,8 @@ export interface RaidData {
     /** A curve raid's total buyer slots per boss, rather than the single {@link buyerSlots} count VIP and regular raids use. */
     curveSlots: { name: string, slots: string }[]
     type: string
+    /** Dawnhub's id for the raid's leader; a raid listed without one is left out of the delay estimates. */
+    squadLeader?: string
     loot: LootType
     difficulty: RaidDifficulty
     groupType: string

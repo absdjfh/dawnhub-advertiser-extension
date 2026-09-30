@@ -57,6 +57,7 @@ utils/        ---- generic formatting, time, timers, DOM controls, toasts
 | Find a buyer | `components/ui/BookingSearch.vue` | Loads the raids in the page's own date filters, with their bookings |
 | Raids with slots available | `components/ui/open-slots-filter.ts` | Hides rows in place, so row numbering stays intact |
 | Raid time links | `components/ui/raid-link.ts` | Mirrors Dawnhub's cell content into a link instead of moving it |
+| Late starts | `utils/raid-delays.ts`, `components/ui/raid-delay.ts` | Times a lock from Dawnhub's own refreshes of the list, halfway between the two that showed the change; locks are kept in extension storage for a day, so every Dawnhub tab goes by the same ones |
 
 ### Fill booking from a DM
 
