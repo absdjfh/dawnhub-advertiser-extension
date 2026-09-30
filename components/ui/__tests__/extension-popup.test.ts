@@ -78,7 +78,8 @@ describe("Extension popup", () => {
             ["Fill booking from a DM", "https://dawn-adv-tools.rolich.net/guide.html#fill-from-dm"],
             ["Find a buyer", "https://dawn-adv-tools.rolich.net/guide.html#find-a-buyer"],
             ["Raids with slots available", "https://dawn-adv-tools.rolich.net/guide.html#slots-available"],
-            ["Raid time links", "https://dawn-adv-tools.rolich.net/guide.html#raid-links"]
+            ["Raid time links", "https://dawn-adv-tools.rolich.net/guide.html#raid-links"],
+            ["Late starts", "https://dawn-adv-tools.rolich.net/guide.html#late-starts"]
         ])
     })
 

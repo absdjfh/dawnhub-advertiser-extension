@@ -2,6 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {ContentScriptContext, fakeBrowser} from "#imports";
 import type {RaidData} from "@/components/api/dawn-api";
 import {openSlotsFilterStore} from "@/components/ui/open-slots-filter";
+import {raidLocksStore} from "@/utils/raid-delays";
 import {closeBookingIntentPanel} from "@/components/ui/booking-intent-panel";
 import {takePendingBookingFor} from "@/components/booking-intent/pending-booking";
 
@@ -18,12 +19,17 @@ const LIST_URL = "https://hub.dawn-boosting.com/api/raids?dateFrom=2026-08-01%20
 
 /** The list behind the fixture's five rows, in Dawnhub's order - rows 2 and 3 are full. */
 const raids = [
-    {_id: "r0", dateTime: "2026-08-01T10:00:00.000Z", status: "active", loot: "vip", booked: 1, buyerSlots: "4", instanceName: "Undermine"},
-    {_id: "r1", dateTime: "2026-08-01T10:15:00.000Z", status: "active", loot: "unsaved", booked: 1, buyerSlots: "10", instanceName: "Undermine"},
-    {_id: "r2", dateTime: "2026-08-01T10:30:00.000Z", status: "active", loot: "vip", booked: 4, buyerSlots: "4", instanceName: "Undermine"},
-    {_id: "r3", dateTime: "2026-08-01T10:45:00.000Z", status: "active", loot: "unsaved", booked: 10, buyerSlots: "10", instanceName: "Undermine"},
-    {_id: "r4", dateTime: "2026-08-01T11:00:00.000Z", status: "active", loot: "vip", booked: 2, buyerSlots: "10", instanceName: "Undermine"}
+    {_id: "r0", dateTime: "2026-08-01T10:00:00.000Z", status: "active", squadLeader: "leader-0", loot: "vip", booked: 1, buyerSlots: "4", instanceName: "Undermine"},
+    {_id: "r1", dateTime: "2026-08-01T10:15:00.000Z", status: "active", squadLeader: "leader-1", loot: "unsaved", booked: 1, buyerSlots: "10", instanceName: "Undermine"},
+    {_id: "r2", dateTime: "2026-08-01T10:30:00.000Z", status: "active", squadLeader: "leader-2", loot: "vip", booked: 4, buyerSlots: "4", instanceName: "Undermine"},
+    {_id: "r3", dateTime: "2026-08-01T10:45:00.000Z", status: "active", squadLeader: "leader-3", loot: "unsaved", booked: 10, buyerSlots: "10", instanceName: "Undermine"},
+    {_id: "r4", dateTime: "2026-08-01T11:00:00.000Z", status: "active", squadLeader: "leader-4", loot: "vip", booked: 2, buyerSlots: "10", instanceName: "Undermine"}
 ] as RaidData[]
+
+/** A Dawn wall clock time on the day the fixture's raids are on, as an instant. */
+function dawnTime(time: string) {
+    return Date.parse(`2026-08-01T${time}:00+02:00`)
+}
 
 class FakePerformanceObserver {
     static latest: FakePerformanceObserver | null = null
@@ -65,6 +71,17 @@ function raidLinks() {
     return Array.from(document.querySelectorAll<HTMLAnchorElement>("a[data-dat-raid-link]")).map(link => link.getAttribute("href"))
 }
 
+/** Every likely start shown on the table, with what its estimate goes by. */
+function delayMarks() {
+    return Array.from(document.querySelectorAll<HTMLElement>("[data-dat-raid-delay]")).map(mark => [mark.textContent, mark.title])
+}
+
+function respondWithRaids(list: RaidData[]) {
+    vi.stubGlobal("fetch", vi.fn((url: string) => Promise.resolve(url === `${LIST_URL}&ext`
+        ? {ok: true, json: () => Promise.resolve(list)}
+        : {ok: false, status: 404})))
+}
+
 function fillButton() {
     return document.querySelector<HTMLButtonElement>(".dat-fill-button")
 }
@@ -79,14 +96,13 @@ describe("Content script on Dawnhub's raids list", () => {
         history.replaceState(null, "", "/bookings/raids?type=raid")
         document.body.innerHTML = raidsTableHtml
         vi.stubGlobal("PerformanceObserver", FakePerformanceObserver)
-        vi.stubGlobal("fetch", vi.fn((url: string) => Promise.resolve(url === `${LIST_URL}&ext`
-            ? {ok: true, json: () => Promise.resolve(raids)}
-            : {ok: false, status: 404})))
+        respondWithRaids(raids)
     })
 
     afterEach(() => {
         ctx.notifyInvalidated()
         closeBookingIntentPanel()
+        vi.useRealTimers()
         vi.unstubAllGlobals()
         sessionStorage.clear()
         document.body.replaceChildren()
@@ -110,6 +126,41 @@ describe("Content script on Dawnhub's raids list", () => {
         expect(fetch).toHaveBeenCalledWith(`${LIST_URL}&ext`)
         expect(raidLinks()[2]).toBe("https://hub.dawn-boosting.com/bookings/raids/r2")
         expect(sessionStorage.getItem("dawnhubAdvertiserTools:raidsListRequest")).toBe(LIST_URL)
+    })
+
+    it("should mark a raid's likely start when its leader's raid before it locked late", async () => {
+        vi.useFakeTimers({toFake: ["Date"]})
+        vi.setSystemTime(new Date("2026-08-01T08:20:00.000Z")) // 10:20 in Dawn time
+        // A raid of the 10:15 raid's leader that locked 20 minutes late, timed on a list this one doesn't hold.
+        await raidLocksStore.setValue([{raidId: "earlier", squadLeader: "leader-1", plannedAt: dawnTime("09:30"), lockedAt: dawnTime("09:50")}])
+        await startContentScript()
+
+        FakePerformanceObserver.latest!.deliver(LIST_URL)
+        // Only Date is faked here, so the wait itself runs on real timers.
+        await new Promise(resolve => setTimeout(resolve, 20))
+
+        expect(delayMarks()).toStrictEqual([["~10:35", "09:30 run locked 20 min late"]])
+        // Beside the raid link, outside the Dawnhub content that link mirrors, so the link still shows the listed start.
+        const timeCell = document.querySelector<HTMLElement>("[data-dat-raid-delay]")!.closest("td")!
+        expect(timeCell.querySelector("[data-dat-raid-delay]")!.previousElementSibling).toBe(timeCell.querySelector("a[data-dat-raid-link]"))
+        expect(timeCell.querySelector("a[data-dat-raid-link]")!.textContent).toBe("10:15")
+    })
+
+    it("should time a raid's lock between the refreshes of the list that showed it change", async () => {
+        const beforeFirstLoad = Date.now()
+        await startContentScript()
+        FakePerformanceObserver.latest!.deliver(LIST_URL)
+        await vi.waitFor(() => expect(raidLinks()).toHaveLength(5))
+
+        // Dawnhub refreshes its list itself; this refresh shows the 10:00 raid locked.
+        respondWithRaids(raids.map(raid => raid._id === "r0" ? {...raid, status: "locked"} : raid))
+        FakePerformanceObserver.latest!.deliver(LIST_URL)
+
+        await vi.waitFor(async () => expect(await raidLocksStore.getValue()).toHaveLength(1))
+        const [lock] = await raidLocksStore.getValue()
+        expect(lock).toMatchObject({raidId: "r0", squadLeader: "leader-0", plannedAt: dawnTime("10:00")})
+        expect(lock!.lockedAt).toBeGreaterThanOrEqual(beforeFirstLoad)
+        expect(lock!.lockedAt).toBeLessThanOrEqual(Date.now())
     })
 
     it("should hide full raids while the slots available tick is on, and remember the tick", async () => {

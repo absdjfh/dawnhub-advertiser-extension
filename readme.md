@@ -8,6 +8,7 @@ A Chrome extension that adds tools for advertisers to the Dawnhub website. Curre
 - **Find a buyer** - search the raids in the dates being viewed for a character's bookings.
 - **Raids with slots available** - hide every raid that's already full.
 - **Raid time links** - open a raid in a new tab from its time.
+- **Late starts** - show a raid's likely start when its leader's raid before it is still open past its start or locked late.
 
 - Website, user guide and privacy policy: https://dawn-adv-tools.rolich.net (source in [`hosted/`](hosted))
 - [Architecture](docs/architecture.md) · [Contributing](CONTRIBUTING.md) · [Release workflow](docs/release-workflow.md)

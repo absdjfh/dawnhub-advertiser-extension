@@ -14,6 +14,7 @@ const TOOLS = [
     {name: "Find a buyer", description: "See which raids a character is booked into.", anchor: "find-a-buyer"},
     {name: "Raids with slots available", description: "Hide every raid that's already full.", anchor: "slots-available"},
     {name: "Raid time links", description: "Middle-click a raid's time to open it in a new tab.", anchor: "raid-links"},
+    {name: "Late starts", description: "See when a raid will likely start when the raid before it runs late.", anchor: "late-starts"},
 ]
 // Bound rather than written into the template, where Vue would turn it into a module import of the file.
 const ICON_URL = "/icon/48.png"
