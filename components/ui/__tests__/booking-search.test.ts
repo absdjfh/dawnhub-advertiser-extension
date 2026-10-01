@@ -165,7 +165,7 @@ describe("Find a buyer", () => {
         await vi.waitFor(() => expect(document.querySelector(".dat-search-popup")).toBeNull())
     })
 
-    it("should keep the search popup open when the user clicks inside it", async () => {
+    it("should keep the search popup open when the user clicks inside it", () => {
         openSearch()
         expect(document.querySelector(".dat-search-popup")).not.toBeNull()
 
@@ -174,7 +174,7 @@ describe("Find a buyer", () => {
         expect(document.querySelector(".dat-search-popup")).not.toBeNull()
     })
 
-    it("should toggle the search popup closed when the trigger is clicked again", async () => {
+    it("should toggle the search popup closed when the trigger is clicked again", () => {
         openSearch()
         expect(document.querySelector(".dat-search-popup")).not.toBeNull()
 
