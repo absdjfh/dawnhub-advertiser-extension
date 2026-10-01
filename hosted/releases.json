@@ -1,0 +1,65 @@
+{
+  "downloads": {
+    "chrome": {
+      "version": "26.10.1",
+      "file": "dawnhub-advertiser-extension-26.10.1-chrome.zip"
+    }
+  },
+  "history": {
+    "chrome": [
+      {
+        "version": "26.9.4",
+        "file": "dawnhub-advertiser-extension-26.9.4-chrome.zip"
+      },
+      {
+        "version": "26.9.3",
+        "file": "dawnhub-advertiser-extension-26.9.3-chrome.zip"
+      },
+      {
+        "version": "26.9.2",
+        "file": "dawnhub-advertiser-extension-26.9.2-chrome.zip"
+      },
+      {
+        "version": "26.9.1",
+        "file": "dawnhub-advertiser-extension-26.9.1-chrome.zip"
+      }
+    ]
+  },
+  "releaseNotes": [
+    {
+      "version": "26.10.1",
+      "publishedAt": "2026-10-01",
+      "items": [
+        "Close name-realm search popup on outside click (#5)"
+      ]
+    },
+    {
+      "version": "26.9.4",
+      "publishedAt": "2026-09-30",
+      "items": [
+        "Estimate a raid's start when the raid before it runs late (#3)"
+      ]
+    },
+    {
+      "version": "26.9.3",
+      "publishedAt": "2026-09-29",
+      "items": [
+        "Mark raids in the fill-booking panel that may not fit the buyer (#2)"
+      ]
+    },
+    {
+      "version": "26.9.2",
+      "publishedAt": "2026-09-28",
+      "items": [
+        "Filter out \"Encrypted\" nameRealm bookings from search results (#1)"
+      ]
+    },
+    {
+      "version": "26.9.1",
+      "publishedAt": "2026-09-26",
+      "items": [
+        "First public release"
+      ]
+    }
+  ]
+}

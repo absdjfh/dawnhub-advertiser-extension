@@ -1,0 +1,45 @@
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body {
+    min-width: 320px;
+    margin: 0;
+    padding: 0 0 32px;
+    background: radial-gradient(circle at 50% -20%, #292d3e 0, #151822 40%, #0f1117 76%);
+    color: #c4cad6;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+}
+.topbar { display: flex; align-items: center; justify-content: space-between; width: min(100% - 40px, 1080px); margin: 0 auto; padding: 22px 0; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: #f6f7fb; font-size: 16px; font-weight: 700; text-decoration: none; }
+.brand img { width: 34px; height: 34px; border-radius: 9px; }
+nav { display: flex; align-items: center; gap: 4px; }
+nav a { padding: 8px 10px; border-radius: 7px; color: #aeb5c5; font-size: 13px; font-weight: 600; text-decoration: none; }
+nav a:hover, nav a.active { color: #fff; background: #252a37; }
+main {
+    width: min(100% - 40px, 820px);
+    margin: 54px auto 32px;
+    padding: 30px;
+    border: 1px solid #2e3443;
+    border-radius: 12px;
+    background: rgba(27, 31, 42, .93);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .15);
+}
+h1, h2, h3 { color: #f5f6f9; }
+h1 { margin: 12px 0 8px; font-size: 29px; letter-spacing: -.04em; }
+h2 { margin: 34px 0 10px; font-size: 19px; letter-spacing: -.02em; }
+h3 { margin: 24px 0 6px; font-size: 16px; }
+p { margin: 0 0 15px; }
+ul { margin: 0 0 15px; padding-left: 24px; }
+li { margin-bottom: 5px; }
+a { color: #a894ff; text-decoration: none; }
+a:hover { color: #c4b5ff; text-decoration: underline; }
+code { padding: 2px 5px; border-radius: 4px; background: #202532; color: #dde1ea; }
+@media (max-width: 560px) { body { font-size: 14px; } .topbar { width: min(100% - 24px, 1080px); padding: 16px 0; align-items: flex-start; gap: 12px; } nav { flex-wrap: wrap; justify-content: flex-end; } main { width: min(100% - 24px, 820px); margin-top: 32px; padding: 22px; border-radius: 10px; } h1 { font-size: 25px; } }
+.brand span { white-space: nowrap; }
+@media (max-width: 760px) { .topbar { flex-wrap: wrap; gap: 8px 12px; } nav { flex-wrap: wrap; justify-content: flex-start; } }
+.site-footer { display: flex; width: min(100% - 40px, 820px); margin: 0 auto; font-size: 13px; }
+.github-link { display: inline-flex; align-items: center; gap: 7px; color: #aeb5c5; }
+.github-link:hover { color: #fff; }
+.github-link svg { width: 18px; height: 18px; fill: currentColor; }
+@media (max-width: 560px) { .site-footer { width: min(100% - 24px, 820px); } }
