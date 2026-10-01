@@ -155,4 +155,31 @@ describe("Find a buyer", () => {
         document.dispatchEvent(new KeyboardEvent("keydown", {key: "Escape"}))
         await vi.waitFor(() => expect(document.querySelector(".dat-search-popup")).toBeNull())
     })
+
+    it("should remove the search popup when the user clicks outside it", async () => {
+        openSearch()
+        expect(document.querySelector(".dat-search-popup")).not.toBeNull()
+
+        document.body.dispatchEvent(new MouseEvent("mousedown", {bubbles: true}))
+
+        await vi.waitFor(() => expect(document.querySelector(".dat-search-popup")).toBeNull())
+    })
+
+    it("should keep the search popup open when the user clicks inside it", async () => {
+        openSearch()
+        expect(document.querySelector(".dat-search-popup")).not.toBeNull()
+
+        document.querySelector(".dat-search-input")?.dispatchEvent(new MouseEvent("mousedown", {bubbles: true}))
+
+        expect(document.querySelector(".dat-search-popup")).not.toBeNull()
+    })
+
+    it("should toggle the search popup closed when the trigger is clicked again", async () => {
+        openSearch()
+        expect(document.querySelector(".dat-search-popup")).not.toBeNull()
+
+        Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(button => button.textContent === "Find a buyer")!.click()
+
+        expect(document.querySelector(".dat-search-popup")).toBeNull()
+    })
 })
