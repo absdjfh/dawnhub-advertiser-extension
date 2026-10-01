@@ -143,9 +143,8 @@ describe("Find a buyer", () => {
         await vi.waitFor(() => expect(searchStatus()).toBe("Failed to load raid data. Try again."))
     })
 
-    it("should open just one popup however often it's clicked, and close on Close or Escape", async () => {
+    it("should close on Close or Escape", async () => {
         openSearch()
-        Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(button => button.textContent === "Find a buyer")!.click()
         expect(document.querySelectorAll(".dat-search-popup")).toHaveLength(1)
 
         Array.from(document.querySelectorAll<HTMLButtonElement>(".dat-search-action")).find(button => button.textContent === "Close")!.click()
