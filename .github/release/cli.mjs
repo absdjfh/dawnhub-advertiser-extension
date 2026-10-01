@@ -3,6 +3,7 @@ import {
     COMPONENTS,
     RECONCILABLE_COMPONENTS,
     RECONCILE_WORKFLOW_FILE,
+    SITE_WORKFLOW_FILE,
     assertOperationAllowed,
     calculateResultingVersion,
     resolveDispatchInputs,
@@ -16,6 +17,7 @@ import {
     preflightReleaseIntent,
     prepareVersionCommit,
     publishHostedBranch,
+    publishSite,
     pushReleaseBoundary,
     readAuthoritativeTip,
     readIntentMarker,
@@ -91,6 +93,9 @@ async function main(selectedCommand, args) {
             return;
         case 'reconcile':
             await reconcile();
+            return;
+        case 'publish-site':
+            await publishSiteFiles();
             return;
         default:
             throw new Error('Unknown release helper command.');
@@ -304,6 +309,38 @@ async function finalize() {
     console.log(`Release result: ${result.overallStatus}`);
     if (result.overallStatus !== 'success') {
         throw new Error('Release policy did not reach a successful overall result.');
+    }
+}
+
+// Puts master's site files live without a release: no version, tag, intent
+// marker, or store submission. The seed carries every Chrome package and the
+// releases.json manifest over from the hosted branch unchanged.
+async function publishSiteFiles() {
+    requireWorkflowContext(SITE_WORKFLOW_FILE);
+    const git = createGitRunner(readGitHubToken());
+    const sourceSha = git.run(['rev-parse', '--verify', 'HEAD^{commit}']).stdout.trim();
+    seedHostedWorkspace(git);
+    const {hostedCommitSha, changes} = publishSite(git, {sourceSha});
+    const outcome = hostedCommitSha === null
+        ? 'The site already matches master; nothing was pushed.'
+        : `Pushed ${hostedCommitSha.slice(0, 12)} to the hosted branch with an exact lease.`;
+    console.log(outcome);
+    const summary = [
+        '# Site publication',
+        '',
+        `- Source: \`${sourceSha}\` (origin/master tip)`,
+        `- Result: ${outcome}`,
+        ...(changes.length === 0 ? [] : [
+            '',
+            '| Change | File |',
+            '| --- | --- |',
+            ...changes.map(change => `| ${change.status} | ${change.path.replaceAll('|', '\\|')} |`),
+        ]),
+        '',
+    ].join('\n');
+    const stepSummary = process.env.GITHUB_STEP_SUMMARY;
+    if (stepSummary) {
+        await appendFile(stepSummary, summary, 'utf8');
     }
 }
 

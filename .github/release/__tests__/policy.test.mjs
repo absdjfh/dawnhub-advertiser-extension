@@ -5,6 +5,7 @@ import {
     RECONCILABLE_COMPONENTS,
     RECONCILE_ACTIONS,
     ReleasePolicyError,
+    SITE_WORKFLOW_FILE,
     buildReleasePlan,
     buildRunIntentId,
     calculateResultingVersion,
@@ -111,6 +112,19 @@ describe('release input policy', () => {
             ref: 'refs/heads/master',
             workflowRef: 'absdjfh/dawnhub-advertiser-extension/.github/workflows/release-reconcile.yml@refs/heads/master',
         }, '.github/workflows/release-reconcile.yml')).toBeTruthy();
+    });
+
+    it('accepts the site publication only as its own allowlisted master definition', () => {
+        const context = {
+            repository: 'absdjfh/dawnhub-advertiser-extension',
+            ref: 'refs/heads/master',
+            workflowRef: `absdjfh/dawnhub-advertiser-extension/${SITE_WORKFLOW_FILE}@refs/heads/master`,
+        };
+        expect(validateWorkflowContext(context, SITE_WORKFLOW_FILE)).toBeTruthy();
+        expect(() => validateWorkflowContext({...context, ref: 'refs/heads/feature'}, SITE_WORKFLOW_FILE))
+            .toThrow(ReleasePolicyError);
+        // Dispatched as the site workflow but checked against the release one.
+        expect(() => validateWorkflowContext(context)).toThrow(ReleasePolicyError);
     });
 });
 

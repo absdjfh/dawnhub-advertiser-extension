@@ -75,13 +75,28 @@ Cloudflare serves the public site from the orphan `hosted` branch, not from `mas
 
 In a production run:
 
-1. `seed-hosted` (after the store submission) restores the generated files (`*.zip`, `releases.json`) from the branch tip into `hosted/`, dropping `master`'s copies. Site files stay as `master` has them, so site edits on `master` go live with the next release. If the branch does not exist yet, the checkout's own `hosted/` bootstraps it.
+1. `seed-hosted` (after the store submission) restores the generated files (`*.zip`, `releases.json`) from the branch tip into `hosted/`, dropping `master`'s copies. Site files stay as `master` has them, so site edits on `master` go live with the next release, or sooner with [Publish site](#publishing-only-the-site). If the branch does not exist yet, the checkout's own `hosted/` bootstraps it.
 2. `publish-hosted-release.mjs` copies the new `.zip`, updates `releases.json` (current download, previous versions, release notes), and prunes old packages.
 3. `commit-hosted` builds a tree from `hosted/` in a throwaway index and pushes it as a single parentless commit, force-with-lease against the recorded tip. Pruned binaries leave the branch history, so it never grows.
 
 `HOSTED_RETAINED_VERSIONS = 5` (`.github/release/hosted-retention.mjs`) keeps the current package plus the four before it. Release notes keep a longer text-only history.
 
-Site-only changes (a guide or privacy policy edit) go live with the next release. To publish one sooner, see [Publishing the site without a release](#publishing-the-site-without-a-release).
+### Publishing only the site
+
+To put site edits (the guide, landing page, privacy policy, styles) live without a release, run the **Publish site** workflow (`.github/workflows/publish-site.yml`, `SITE_WORKFLOW_FILE`) on `master`. It has no inputs:
+
+```bash
+gh workflow run publish-site.yml --ref master
+```
+
+It checks out the `origin/master` tip, runs the same seed as a release, and then `publish-site` pushes `hosted/` as one parentless commit, `Publish site from <master SHA>`, with the same exact lease. There is no version, tag, intent marker, or store submission, and it installs nothing because the helper needs only Node built-ins. The job summary lists every site file it added, changed, or deleted.
+
+- **Downloads are untouched.** Every `.zip` package and `releases.json` comes from the branch byte-exact, and a tree that would still change one of them is refused (`SITE_CHANGES_DOWNLOADS`). Only a release changes what users download.
+- **A current site is a no-op.** If the tree equals the branch tip's, nothing is pushed, so Cloudflare does not redeploy.
+- **It never creates the branch.** Without an existing `hosted` branch it stops (`HOSTED_BRANCH_MISSING`); the first release bootstraps it.
+- **It queues behind releases.** It shares the non-cancelling `extension-release-production` concurrency group, because a release seeds the branch before it pushes it and a site push in between would make that release's leased push fail.
+- **A later hosted reconcile undoes it.** Reconciling an earlier release's `hostedCommit` republishes the site files of that release's version commit. Run Publish site again afterwards.
+- **It publishes the tip as is.** A guide page on `master` that describes an unreleased feature goes live before the extension that has it.
 
 ## Dry run
 
@@ -91,7 +106,7 @@ It does not create a commit or tag, push Git refs, create an intent marker, subm
 
 ## Concurrency, intent markers, and the irreversible boundary
 
-All production runs share the `extension-release-production` concurrency group with `cancel-in-progress: false`; dry runs use run-scoped groups and cannot block production.
+All production runs — releases, reconciliations, and site publications — share the `extension-release-production` concurrency group with `cancel-in-progress: false`; dry runs use run-scoped groups and cannot block production.
 
 The durable idempotency marker is an annotated tag named `release-intent/<releaseIntentId>`. Its JSON message records the intent, approved source, release date, original/resulting version, version commit/tag, and workflow run. Markers are discoverable with:
 
@@ -164,6 +179,4 @@ cd - && git worktree remove --force ../hosted-seed
 
 Then create a Cloudflare Pages project connected to this repository with production branch `hosted`, no build command, build output directory `hosted`, and the custom domain `dawn-adv-tools.rolich.net`.
 
-### Publishing the site without a release
-
-The same commands, run against an existing branch, would replace it wholesale — including the packages and `releases.json` only the release keeps. So for a site-only change, prefer waiting for the next release. If it can't wait, check out the `hosted` branch, copy just the edited site files from `master` into its `hosted/` directory, commit, and push; leave `*.zip` and `releases.json` alone.
+The commands above would replace an existing branch wholesale, including the packages and `releases.json` only the release keeps, so they are for the bootstrap only. Once the branch exists, a site-only change goes live through [Publish site](#publishing-only-the-site).

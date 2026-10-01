@@ -9,6 +9,7 @@ export const RELEASE_PROFILE = 'full';
 export const RELEASE_REPOSITORY = 'absdjfh/dawnhub-advertiser-extension';
 export const RELEASE_WORKFLOW_FILE = '.github/workflows/release.yml';
 export const RECONCILE_WORKFLOW_FILE = '.github/workflows/release-reconcile.yml';
+export const SITE_WORKFLOW_FILE = '.github/workflows/publish-site.yml';
 
 export const RELEASE_INPUT_KEYS = Object.freeze([
     'sourceSha',
