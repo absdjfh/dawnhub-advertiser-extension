@@ -1,0 +1,50 @@
+name: Publish site
+
+run-name: Publish site from the origin/master tip
+
+# Puts the site files under hosted/ on master live without cutting a release:
+# no version, tag, intent marker, or store submission. The Chrome packages and
+# releases.json are carried over from the hosted branch unchanged, so only a
+# release ever changes what users download.
+# See docs/release-workflow.md#publishing-only-the-site.
+on:
+  workflow_dispatch:
+
+# contents:write is required only for the guarded push of the hosted branch.
+permissions:
+  contents: write
+
+# Shares the release lane. A release seeds the hosted branch after the store
+# submission and pushes it only once the release files are generated, so a
+# site publication landing in between would make that release's leased push
+# fail and leave its hosted commit to reconciliation. queue: max lines runs up
+# behind each other, so a site publication never replaces a release or
+# reconcile already pending.
+concurrency:
+  group: extension-release-production
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TRIGGER_REF: ${{ github.ref }}
+      RELEASE_WORKFLOW_REF: ${{ github.workflow_ref }}
+    steps:
+      - name: Check out the authoritative branch
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          persist-credentials: false
+
+      # The helper needs only Node built-ins, so nothing is installed.
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Publish site files to the hosted branch
+        run: node .github/release/cli.mjs publish-site
+        env:
+          RELEASE_GITHUB_TOKEN: ${{ github.token }}

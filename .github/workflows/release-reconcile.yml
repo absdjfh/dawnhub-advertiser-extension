@@ -34,14 +34,15 @@ on:
         options: [unspecified, already-committed, commit-now]
 
 # Reconciliation can submit to stores and push hosted files, exactly like the
-# release workflow, so it shares the same non-cancelling production lane and
-# can never race or overlap an in-progress production release.
+# release workflow, so it shares the same non-cancelling, first-in-first-out
+# production lane and can never race, overlap, or displace a production release.
 permissions:
   contents: write
 
 concurrency:
   group: extension-release-production
   cancel-in-progress: false
+  queue: max
 
 jobs:
   reconcile:

@@ -317,17 +317,18 @@ export function pushReleaseBoundary(inputs, result, git) {
 
 // Everything Cloudflare serves lives on the orphan HOSTED_BRANCH, under the
 // same hosted/ directory as on master, so the Cloudflare project only needs
-// its production branch set to it. Binaries never enter master: each release
-// rewrites the branch as a single parentless commit, so pruned versions leave
-// its history and it cannot grow.
+// its production branch set to it. Binaries never enter master: each release,
+// and each site-only publication, rewrites the branch as a single parentless
+// commit, so pruned versions leave its history and it cannot grow.
 //
-// The workflow works on the hosted/ directory of the release checkout. The
-// steps below seed it from the branch before anything is fetched or generated
-// and publish it back afterwards.
+// Both work on the hosted/ directory of their checkout. The steps below seed
+// it from the branch before anything is fetched or generated and publish it
+// back afterwards.
 
 // Generated per release; everything else under hosted/ is site source owned by
-// master and is carried over from the release commit. Chrome only: the ZIP
-// packages and the manifest listing them - no Firefox XPIs or update feeds.
+// master and is carried over from the checked-out commit: the release commit,
+// or the master tip for a site-only publication. Chrome only: the ZIP packages
+// and the manifest listing them - no Firefox XPIs or update feeds.
 const GENERATED_HOSTED_FILE = /(?:\.zip|(?:^|\/)releases\.json)$/;
 
 export function seedHostedWorkspace(git, {workspace = 'hosted', baseFile = HOSTED_BASE_FILE} = {}) {
@@ -373,38 +374,12 @@ function removeGeneratedFiles(directory) {
 
 export function publishHostedBranch(result, git, {baseFile = HOSTED_BASE_FILE, version = null} = {}) {
     try {
-        const tracked = lines(git.run(['diff', '--name-only']).stdout);
-        const alreadyStaged = lines(git.run(['diff', '--cached', '--name-only']).stdout);
-        if ([...tracked, ...alreadyStaged].some(file => !file.startsWith('hosted/'))) {
-            throw new ReleaseGitError('UNEXPECTED_HOSTED_CHANGES', 'Hosted publication changed a path outside hosted/.');
-        }
         const baseSha = readHostedBase(baseFile);
-        // The tree is built in a throwaway index, so neither master's index nor
-        // its checkout is ever staged or committed.
-        const indexFile = join(dirname(baseFile), 'hosted-branch.index');
-        rmSync(indexFile, {force: true});
-        const env = {GIT_INDEX_FILE: indexFile};
-        git.run(['add', '--all', '--force', '--', 'hosted'], {env});
-        const tree = requireFullSha(git.run(['write-tree'], {env}).stdout);
-        rmSync(indexFile, {force: true});
-        const hostedCommitSha = requireFullSha(git.run([
-            '-c', 'user.name=github-actions[bot]',
-            '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com',
-            'commit-tree', tree, '-m', `Publish hosted release files${version ? ` for ${version}` : ''}`,
-        ]).stdout);
-        // Read the remote ref again immediately before the write, exactly as
-        // every other guarded push does. An empty expected value means the
-        // branch must not exist yet.
-        const remoteSha = remoteRefSha(git, `refs/heads/${HOSTED_BRANCH}`);
-        if (remoteSha !== baseSha) {
-            throw new ReleaseGitError('HOSTED_BRANCH_MOVED', 'The hosted branch moved after it was seeded; guarded push refused.');
-        }
-        git.run([
-            'push',
-            `--force-with-lease=refs/heads/${HOSTED_BRANCH}:${baseSha ?? ''}`,
-            'origin',
-            `${hostedCommitSha}:refs/heads/${HOSTED_BRANCH}`,
-        ], {network: true});
+        const tree = writeHostedTree(git, baseFile);
+        const hostedCommitSha = pushHostedTree(git, tree, {
+            baseSha,
+            message: `Publish hosted release files${version ? ` for ${version}` : ''}`,
+        });
         recordComponent(result, 'hostedCommit', 'success', `Hosted release files were pushed to the ${HOSTED_BRANCH} branch (${hostedCommitSha.slice(0, 12)}) with an exact lease.`);
         return result;
     } catch (error) {
@@ -416,6 +391,81 @@ export function publishHostedBranch(result, git, {baseFile = HOSTED_BASE_FILE, v
         );
         throw error;
     }
+}
+
+// Publishes master's site files without a release. The workspace must have
+// been seeded from an existing hosted branch, so every generated file is the
+// branch's own byte-exact copy; a tree that would still change one is refused,
+// because only a release may change what users download. Nothing is pushed
+// when the site is already current.
+export function publishSite(git, {sourceSha, baseFile = HOSTED_BASE_FILE}) {
+    const baseSha = readHostedBase(baseFile);
+    if (baseSha === null) {
+        throw new ReleaseGitError(
+            'HOSTED_BRANCH_MISSING',
+            `The ${HOSTED_BRANCH} branch does not exist yet; the next release creates it.`,
+        );
+    }
+    const tree = writeHostedTree(git, baseFile);
+    // NUL-separated, so every path arrives verbatim rather than C-quoted and
+    // the guard below sees the same name the branch will serve.
+    const fields = git.run(['diff-tree', '-z', '-r', '--no-renames', '--name-status', `${baseSha}^{tree}`, tree])
+        .stdout.split('\0').filter(Boolean);
+    const changes = [];
+    for (let index = 0; index < fields.length; index += 2) {
+        changes.push({status: fields[index], path: fields[index + 1]});
+    }
+    const generated = changes.filter(change => GENERATED_HOSTED_FILE.test(change.path));
+    if (generated.length > 0) {
+        throw new ReleaseGitError(
+            'SITE_CHANGES_DOWNLOADS',
+            `Site publication would change release files: ${generated.map(change => change.path).join(', ')}.`,
+        );
+    }
+    if (changes.length === 0) {
+        return {hostedCommitSha: null, changes};
+    }
+    const hostedCommitSha = pushHostedTree(git, tree, {baseSha, message: `Publish site from ${requireFullSha(sourceSha)}`});
+    return {hostedCommitSha, changes};
+}
+
+// The tree is built in a throwaway index, so neither master's index nor its
+// checkout is ever staged or committed.
+function writeHostedTree(git, baseFile) {
+    const tracked = lines(git.run(['diff', '--name-only']).stdout);
+    const alreadyStaged = lines(git.run(['diff', '--cached', '--name-only']).stdout);
+    if ([...tracked, ...alreadyStaged].some(file => !file.startsWith('hosted/'))) {
+        throw new ReleaseGitError('UNEXPECTED_HOSTED_CHANGES', 'Hosted publication changed a path outside hosted/.');
+    }
+    const indexFile = join(dirname(baseFile), 'hosted-branch.index');
+    rmSync(indexFile, {force: true});
+    const env = {GIT_INDEX_FILE: indexFile};
+    git.run(['add', '--all', '--force', '--', 'hosted'], {env});
+    const tree = requireFullSha(git.run(['write-tree'], {env}).stdout);
+    rmSync(indexFile, {force: true});
+    return tree;
+}
+
+function pushHostedTree(git, tree, {baseSha, message}) {
+    const hostedCommitSha = requireFullSha(git.run([
+        '-c', 'user.name=github-actions[bot]',
+        '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com',
+        'commit-tree', tree, '-m', message,
+    ]).stdout);
+    // Read the remote ref again immediately before the write, exactly as every
+    // other guarded push does. An empty expected value means the branch must
+    // not exist yet.
+    const remoteSha = remoteRefSha(git, `refs/heads/${HOSTED_BRANCH}`);
+    if (remoteSha !== baseSha) {
+        throw new ReleaseGitError('HOSTED_BRANCH_MOVED', 'The hosted branch moved after it was seeded; guarded push refused.');
+    }
+    git.run([
+        'push',
+        `--force-with-lease=refs/heads/${HOSTED_BRANCH}:${baseSha ?? ''}`,
+        'origin',
+        `${hostedCommitSha}:refs/heads/${HOSTED_BRANCH}`,
+    ], {network: true});
+    return hostedCommitSha;
 }
 
 function readHostedBase(baseFile) {

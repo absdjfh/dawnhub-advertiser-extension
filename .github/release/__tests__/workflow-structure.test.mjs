@@ -6,14 +6,15 @@ import {OPERATION_DEFINITIONS} from '../operations.mjs';
 
 const workflowPath = resolve('.github/workflows/release.yml');
 const ciPath = resolve('.github/workflows/ci.yml');
-const workflow = readFileSync(workflowPath, 'utf8');
-const ci = readFileSync(ciPath, 'utf8');
+// A Windows checkout with core.autocrlf has CRLF line breaks, which the checks below do not expect.
+const workflow = readFileSync(workflowPath, 'utf8').replace(/\r\n/g, '\n');
+const ci = readFileSync(ciPath, 'utf8').replace(/\r\n/g, '\n');
 
 describe('release workflow structure', () => {
     it('declares explicit minimal permissions and non-cancelling production concurrency', () => {
         expect(workflow).toMatch(/permissions:\s*\n\s+contents: write/);
         expect(workflow).toContain('extension-release-production');
-        expect(workflow).toContain('cancel-in-progress: false');
+        expect(workflow).toMatch(/cancel-in-progress: false\s*\n\s+queue: max\n/);
     });
 
     it('uses master as the authoritative branch everywhere', () => {

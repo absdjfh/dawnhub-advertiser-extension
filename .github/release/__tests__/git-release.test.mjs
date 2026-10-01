@@ -12,6 +12,7 @@ import {
     HOSTED_BRANCH,
     createGitRunner,
     publishHostedBranch,
+    publishSite,
     seedHostedWorkspace,
     evaluateIntentMarkers,
     readAuthoritativeTip,
@@ -252,6 +253,102 @@ describe('hosted branch publication', () => {
     it('refuses to publish without a seed', () => {
         expect(() => publishHostedBranch({components: {}}, git))
             .toThrowError(expect.objectContaining({code: 'HOSTED_NOT_SEEDED'}));
+    });
+
+    describe('site-only publication', () => {
+        // The state a release leaves behind, seen from a fresh checkout of
+        // master: the branch serves a package and a manifest master has never
+        // seen, so only a working restore from the branch can reproduce them.
+        beforeEach(() => {
+            seedHostedWorkspace(git);
+            write('hosted/26.9.15.zip', Buffer.from([0, 255, 1, 128]));
+            write('hosted/releases.json', '{"branch":"manifest"}');
+            publishHostedBranch({components: {}}, git);
+            sh(work, 'checkout', '--', 'hosted');
+            rmSync(join(work, 'hosted/26.9.15.zip'));
+        });
+
+        function commitSiteEdit(files) {
+            for (const [file, content] of Object.entries(files)) {
+                write(file, content);
+            }
+            sh(work, 'add', '--', ...Object.keys(files));
+            sh(work, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-m', 'site edit');
+            return sh(work, 'rev-parse', 'HEAD');
+        }
+
+        it('publishes master\'s site files and carries every package over byte-exact', () => {
+            const sourceSha = commitSiteEdit({'hosted/index.html': 'site v2', 'hosted/guide.html': 'guide'});
+            seedHostedWorkspace(git);
+
+            const published = publishSite(git, {sourceSha});
+
+            expect(published.changes).toEqual([
+                {status: 'A', path: 'hosted/guide.html'},
+                {status: 'M', path: 'hosted/index.html'},
+            ]);
+            expect(sh(origin, 'rev-parse', HOSTED_BRANCH)).toBe(published.hostedCommitSha);
+            expect(sh(origin, 'log', '-1', '--format=%s', HOSTED_BRANCH)).toBe(`Publish site from ${sourceSha}`);
+            expect(sh(origin, 'rev-list', '--count', HOSTED_BRANCH)).toBe('1');
+            expect(sh(origin, 'show', `${HOSTED_BRANCH}:hosted/index.html`)).toBe('site v2');
+            expect(listBranch()).toEqual([
+                'hosted/26.9.15.zip',
+                'hosted/guide.html',
+                'hosted/index.html',
+                'hosted/old-master.zip',
+                'hosted/releases.json',
+            ]);
+            const served = spawnSync('git', ['show', `${HOSTED_BRANCH}:hosted/26.9.15.zip`], {cwd: origin});
+            expect(served.stdout).toEqual(Buffer.from([0, 255, 1, 128]));
+            expect(sh(origin, 'show', `${HOSTED_BRANCH}:hosted/releases.json`)).toBe('{"branch":"manifest"}');
+        });
+
+        it('passes every path through verbatim, however it is spelled', () => {
+            const sourceSha = commitSiteEdit({'hosted/führer ü.html': 'unicode'});
+            seedHostedWorkspace(git);
+
+            expect(publishSite(git, {sourceSha}).changes).toEqual([{status: 'A', path: 'hosted/führer ü.html'}]);
+        });
+
+        it('pushes nothing when the site already matches master', () => {
+            const before = sh(origin, 'rev-parse', HOSTED_BRANCH);
+            seedHostedWorkspace(git);
+
+            expect(publishSite(git, {sourceSha: sh(work, 'rev-parse', 'HEAD')}))
+                .toEqual({hostedCommitSha: null, changes: []});
+            expect(sh(origin, 'rev-parse', HOSTED_BRANCH)).toBe(before);
+        });
+
+        it('refuses a tree that would change a package or the release manifest', () => {
+            const before = sh(origin, 'rev-parse', HOSTED_BRANCH);
+            seedHostedWorkspace(git);
+            write('hosted/releases.json', '{"tampered":true}');
+
+            expect(() => publishSite(git, {sourceSha: sh(work, 'rev-parse', 'HEAD')}))
+                .toThrowError(expect.objectContaining({code: 'SITE_CHANGES_DOWNLOADS'}));
+            expect(sh(origin, 'rev-parse', HOSTED_BRANCH)).toBe(before);
+        });
+
+        it('refuses to overwrite a hosted branch that moved after seeding', () => {
+            const sourceSha = commitSiteEdit({'hosted/index.html': 'site v2'});
+            seedHostedWorkspace(git);
+            const other = join(root, 'other');
+            sh(root, 'clone', '--branch', HOSTED_BRANCH, origin, other);
+            writeFileSync(join(other, 'hosted', 'index.html'), 'concurrent');
+            sh(other, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-am', 'concurrent');
+            sh(other, 'push', 'origin', HOSTED_BRANCH);
+
+            expect(() => publishSite(git, {sourceSha}))
+                .toThrowError(expect.objectContaining({code: 'HOSTED_BRANCH_MOVED'}));
+            expect(sh(origin, 'show', `${HOSTED_BRANCH}:hosted/index.html`)).toBe('concurrent');
+        });
+    });
+
+    it('never creates the hosted branch from a site-only publication', () => {
+        expect(seedHostedWorkspace(git).bootstrapped).toBe(true);
+        expect(() => publishSite(git, {sourceSha: sh(work, 'rev-parse', 'HEAD')}))
+            .toThrowError(expect.objectContaining({code: 'HOSTED_BRANCH_MISSING'}));
+        expect(spawnSync('git', ['rev-parse', '--verify', HOSTED_BRANCH], {cwd: origin}).status).not.toBe(0);
     });
 });
 

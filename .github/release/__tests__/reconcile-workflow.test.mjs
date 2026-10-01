@@ -4,7 +4,8 @@ import {describe, expect, it} from 'vitest';
 import {OPERATION_DEFINITIONS} from '../operations.mjs';
 import {RECONCILABLE_COMPONENTS, RECONCILE_ACTIONS} from '../policy.mjs';
 
-const workflow = readFileSync(resolve('.github/workflows/release-reconcile.yml'), 'utf8');
+// A Windows checkout with core.autocrlf has CRLF line breaks, which the checks below do not expect.
+const workflow = readFileSync(resolve('.github/workflows/release-reconcile.yml'), 'utf8').replace(/\r\n/g, '\n');
 
 describe('release reconcile workflow structure', () => {
     it('requires an explicit choice for every reconcilable component, defaulting to none of them', () => {
@@ -32,9 +33,8 @@ describe('release reconcile workflow structure', () => {
         expect(withoutDefinition).toEqual(['hostedCommit']);
     });
 
-    it('shares the non-cancelling production lane so it cannot race a release', () => {
-        expect(workflow).toContain('group: extension-release-production');
-        expect(workflow).toContain('cancel-in-progress: false');
+    it('shares the non-cancelling production lane so it cannot race or displace a release', () => {
+        expect(workflow).toMatch(/group: extension-release-production\s*\n\s+cancel-in-progress: false\s*\n\s+queue: max\n/);
     });
 
     it('always finalizes and uploads machine-readable result metadata', () => {

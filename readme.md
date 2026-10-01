@@ -43,6 +43,11 @@ or click the extension's toolbar icon, which shows the model's status and can st
 gh workflow run release.yml --ref master -f dryRun=false
 ```
 
+To publish only the website (e.g. a user guide fix) without a release, run the
+[Publish site](https://github.com/absdjfh/dawnhub-advertiser-extension/actions/workflows/publish-site.yml) action on
+`master`. It puts the `master` tip's `hosted/` site files live and leaves every download as the last release left it; see
+[Publishing only the site](docs/release-workflow.md#publishing-only-the-site).
+
 There is no version to choose: every release is `<two-digit year>.<month>.<release number within that month>`. The
 first release needs a one-time setup (Chrome Web Store item, repository secrets, Cloudflare Pages) - see
 [One-time setup](docs/release-workflow.md#one-time-setup).

@@ -34,11 +34,15 @@ on:
 permissions:
   contents: write
 
-# Every production run shares one non-cancelling group. Dry runs use their own
-# run-scoped groups and cannot hold or interrupt the irreversible release lane.
+# Every production run shares one non-cancelling group, queued first in, first
+# out, so a run waiting its turn is never replaced by a later dispatch into
+# the lane (another release, a reconcile, or a site publication). Dry runs use
+# their own run-scoped groups and cannot hold or interrupt the irreversible
+# release lane.
 concurrency:
   group: ${{ inputs.dryRun && format('extension-release-dry-run-{0}', github.run_id) || 'extension-release-production' }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   release:
