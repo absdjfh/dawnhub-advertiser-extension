@@ -143,9 +143,8 @@ describe("Find a buyer", () => {
         await vi.waitFor(() => expect(searchStatus()).toBe("Failed to load raid data. Try again."))
     })
 
-    it("should open just one popup however often it's clicked, and close on Close or Escape", async () => {
+    it("should close on Close or Escape", async () => {
         openSearch()
-        Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(button => button.textContent === "Find a buyer")!.click()
         expect(document.querySelectorAll(".dat-search-popup")).toHaveLength(1)
 
         Array.from(document.querySelectorAll<HTMLButtonElement>(".dat-search-action")).find(button => button.textContent === "Close")!.click()
@@ -154,5 +153,32 @@ describe("Find a buyer", () => {
         openSearch()
         document.dispatchEvent(new KeyboardEvent("keydown", {key: "Escape"}))
         await vi.waitFor(() => expect(document.querySelector(".dat-search-popup")).toBeNull())
+    })
+
+    it("should remove the search popup when the user clicks outside it", async () => {
+        openSearch()
+        expect(document.querySelector(".dat-search-popup")).not.toBeNull()
+
+        document.body.dispatchEvent(new MouseEvent("mousedown", {bubbles: true}))
+
+        await vi.waitFor(() => expect(document.querySelector(".dat-search-popup")).toBeNull())
+    })
+
+    it("should keep the search popup open when the user clicks inside it", () => {
+        openSearch()
+        expect(document.querySelector(".dat-search-popup")).not.toBeNull()
+
+        document.querySelector(".dat-search-input")?.dispatchEvent(new MouseEvent("mousedown", {bubbles: true}))
+
+        expect(document.querySelector(".dat-search-popup")).not.toBeNull()
+    })
+
+    it("should toggle the search popup closed when the trigger is clicked again", () => {
+        openSearch()
+        expect(document.querySelector(".dat-search-popup")).not.toBeNull()
+
+        Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(button => button.textContent === "Find a buyer")!.click()
+
+        expect(document.querySelector(".dat-search-popup")).toBeNull()
     })
 })

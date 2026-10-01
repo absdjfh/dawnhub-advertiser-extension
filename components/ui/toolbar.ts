@@ -52,22 +52,33 @@ function createFillBookingButton() {
 
 function createBookingSearchButton(toolbar: HTMLElement) {
     let popup: MountedComponent | null = null
+    let container: HTMLDivElement | null = null
     const button = document.createElement("button")
     button.type = "button"
     button.className = "dat-secondary-button"
     button.append(createSvgIcon(SEARCH_ICON, "dat-icon"), document.createTextNode("Find a buyer"))
     attachInstantTooltip(button, "Find which raids a character is booked into, across the dates shown on this page.")
     button.onclick = () => {
-        if (popup) return
-        const container = document.createElement("div")
-        toolbar.appendChild(container)
-        popup = mountComponent(BookingSearch, {onClose: close}, container)
-
-        function close() {
-            popup?.unmount()
-            container.remove()
-            popup = null
+        if (container) {
+            close()
+            return
         }
+        container = document.createElement("div")
+        toolbar.appendChild(container)
+        document.addEventListener("mousedown", onOutsideClick, true)
+        popup = mountComponent(BookingSearch, {onClose: close}, container)
+    }
+
+    function onOutsideClick(event: MouseEvent) {
+        if (container && !container.contains(event.target as Node) && !button.contains(event.target as Node)) close()
+    }
+
+    function close() {
+        document.removeEventListener("mousedown", onOutsideClick, true)
+        popup?.unmount()
+        popup = null
+        container?.remove()
+        container = null
     }
     return button
 }
