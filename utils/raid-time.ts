@@ -7,11 +7,6 @@ export function formatRaidTime(raid: RaidData): string {
     return formatWallTime(getRaidTime(raid))
 }
 
-/** The raid's start as an absolute instant (epoch ms). */
-export function getRaidInstant(raid: RaidData): number {
-    return getRaidTime(raid).instant
-}
-
 /** The raid's start in Dawn time, the way Dawnhub shows it. */
 export function getRaidTime(raid: RaidData): OffsetTime {
     const raidTime = parseOffsetTime(normalizeDawnDateTime(raid.dateTime))

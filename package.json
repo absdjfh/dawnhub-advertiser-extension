@@ -1,6 +1,6 @@
 {
   "name": "dawnhub-advertiser-extension",
-  "description": "Tools for Dawnhub advertisers on the Dawnhub raids and bookings pages.",
+  "description": "Tools for Dawnhub advertisers on the Dawnhub raids list.",
   "private": true,
   "version": "26.10.1",
   "type": "module",
@@ -16,7 +16,6 @@
     "test:release": "vitest run .github/release/__tests__"
   },
   "dependencies": {
-    "tesseract.js": "^7.0.0",
     "vue": "^3.5.13"
   },
   "devDependencies": {

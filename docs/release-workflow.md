@@ -47,7 +47,7 @@ npm run zip
 
 The release scripts use only Node built-ins, so they have no dependencies of their own. Callers cannot disable a check or skip the Chrome package.
 
-There are no Firefox targets, so there is nothing to sign on AMO and no XPI or `updates.json` feed to host. The extension is Chrome-only because its features are free to use Chrome's built-in AI (the Prompt API), which Firefox doesn't have.
+There are no Firefox targets, so there is nothing to sign on AMO and no XPI or `updates.json` feed to host.
 
 ## Versions
 

@@ -61,13 +61,3 @@ function createCheckboxPath(className: string, path: string) {
     element.setAttribute("d", path)
     return element
 }
-
-/**
- * Sets a Dawnhub form field the way typing into it would. Dawnhub's form is React-controlled; the input
- * event is what makes React pick the new value up (a content script's own `value` write bypasses React's
- * value tracker, so React sees the change as the user's).
- */
-export function setFieldValue(field: HTMLInputElement, value: string) {
-    field.value = value
-    field.dispatchEvent(new Event("input", {bubbles: true}))
-}

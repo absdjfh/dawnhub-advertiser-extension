@@ -5,7 +5,7 @@ import {removeRaidDelays, renderRaidDelay} from "@/components/ui/raid-delay";
 import {removeRaidLinks, renderRaidLink} from "@/components/ui/raid-link";
 import {dawnhubSelectors, getDawnhubGrid, getDawnhubGridRows, isRaidsView} from "@/host/dawnhub-page";
 import {getColumnIndex, getRaidByRow, setRaidRowHidden} from "@/host/dawnhub-raid-table";
-import {rememberRaidsListRequest, watchDawnhubRaidsListRequests} from "@/host/dawnhub-raids-request";
+import {watchDawnhubRaidsListRequests} from "@/host/dawnhub-raids-request";
 import {anyNodeMatches, registerObserver} from "@/utils/mutation-utils";
 import {createRaidLockTracker, estimateRaidDelays, type RaidLock} from "@/utils/raid-delays";
 import {reportError} from "@/utils/report-error";
@@ -41,7 +41,6 @@ export function mountRaidsTableIntegration(ctx: DawnhubContentContext): RaidsTab
 
     const stopWatchingRequests = watchDawnhubRaidsListRequests(url => {
         if (stopped || !isRaidsView()) return
-        rememberRaidsListRequest(url)
         const request = ++latestRequest
         // The rows on screen already belong to the new list; until it's reloaded, leave them undecorated
         // rather than resolve them against the old one, which could link a row to the wrong raid.
