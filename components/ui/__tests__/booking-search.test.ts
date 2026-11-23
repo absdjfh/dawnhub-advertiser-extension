@@ -35,7 +35,7 @@ const raidWithoutBookings = {...raidWithBookings, _id: "raid-2", bookings: undef
 function openSearch() {
     const toolbarSlot = document.createElement("div")
     document.body.appendChild(toolbarSlot)
-    renderToolbar(toolbarSlot, {withBookingSearch: true})
+    renderToolbar(toolbarSlot)
     Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(button => button.textContent === "Find a buyer")!.click()
 }
 
