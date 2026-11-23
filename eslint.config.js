@@ -17,5 +17,5 @@ export default defineConfig([
       },
     },
   },
-  { ignores: [".output", ".wxt", '.github', 'hosted/index.js', 'eslint.config.js', 'public/tesseract'] }
+  { ignores: [".output", ".wxt", '.github', 'hosted/index.js', 'eslint.config.js'] }
 ]);

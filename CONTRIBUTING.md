@@ -18,7 +18,7 @@ The release scripts in `.github/release` use only Node built-ins; test them with
 
 ## Adding or changing a feature
 
-1. Find the owning feature under `components/` (`booking-intent`, `ui`, or `api`), or give a new feature its own
+1. Find the owning feature under `components/` (`ui` or `api`), or give a new feature its own
    folder. The [architecture guide](docs/architecture.md#adding-a-feature) lists everywhere a new feature shows up.
 2. Put Dawn page selectors and DOM traversal in `host/`, not in matching or UI code.
 3. Use Vue for extension-owned popups, panels, and the toolbar popup. Keep the small adapter that mounts them into the
@@ -29,11 +29,8 @@ The release scripts in `.github/release` use only Node built-ins; test them with
 
 ## Things to keep in mind
 
-- **Only Dawnhub, nothing else.** The extension talks to Dawnhub alone, and anything a user pastes into it is
-  processed on the device. Bundle what a feature needs (like the OCR engine in `public/tesseract`) rather than load it
-  from a CDN, and update the privacy policy in `hosted/privacy.html` whenever what the extension reads, stores, or
-  sends changes.
-- **Never act for the advertiser.** Tools fill things in and save clicks; submitting a form or changing anything on
-  Dawnhub is always the advertiser's click.
+- **Only Dawnhub, nothing else.** The extension talks to Dawnhub alone. Bundle what a feature needs. Update the privacy
+  policy in `hosted/privacy.html` whenever what the extension reads, stores, or sends changes.
+- **Never act for the advertiser.** Submitting a form or changing anything on Dawnhub is always the advertiser's click.
 - **Keep to your own namespace.** Prefix every class, attribute, and storage key with `dat-` /
   `dawnhubAdvertiserTools:`, so nothing collides with Dawnhub's own page or with other extensions injecting into it.

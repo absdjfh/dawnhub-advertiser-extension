@@ -21,7 +21,7 @@
 </header>
 <main>
     <h1>Privacy Policy for Dawnhub Advertiser Tools</h1>
-    <p><strong>Last updated: September 26, 2026</strong></p>
+    <p><strong>Last updated: November 23, 2026</strong></p>
 
     <p>Dawnhub Advertiser Tools is a Chrome extension that adds tools for advertisers to the
         <a href="https://hub.dawn-boosting.com">Dawnhub website</a>. This policy explains what information the
@@ -31,8 +31,6 @@
     <h2>Summary</h2>
     <ul>
         <li>The extension talks to one service: Dawnhub itself, using your existing Dawnhub session.</li>
-        <li>Anything you paste into the extension, such as a screenshot or message, is processed entirely on your
-            device and never uploaded.</li>
         <li>There is no Dawnhub Advertiser Tools server. The extension collects no analytics, shows no ads, and sells
             nothing.</li>
     </ul>
@@ -43,44 +41,15 @@
         session. It only uses data your account can already see on Dawnhub, and only to provide its tools:</p>
     <ul>
         <li><strong>The raids you are viewing:</strong> dates, raid names, difficulty, loot type, slots, which classes
-            are booked, and status. Used to filter the raids list, link raids, and match a DM to a raid.</li>
-        <li><strong>A single raid's details,</strong> when you are on that raid's page.</li>
+            are booked, raid leaders and status. Used to filter the raids list, link raids and estimate late starts.</li>
+        <li><strong>A single raid's details,</strong> when <em>Find a buyer</em> needs bookings that were omitted from the raids list.</li>
         <li><strong>Bookings</strong> (name-realm, advertiser, class, pot, deposit, paid status and source), when you
             use <em>Find a buyer</em>, to show where a character is booked.</li>
     </ul>
 
-    <h3>Content you paste into the extension</h3>
-    <p><em>Fill booking from a DM</em> reads a message from a buyer that you paste or drop in (such as a Discord or
-        Battle.net DM or an in-game whisper), as a screenshot or as message text, to find the raid being discussed and the buyer's details. That can include whatever the
-        conversation shows: names, display names, message text and timestamps.</p>
-    <ul>
-        <li>A screenshot is turned into text by an OCR engine (Tesseract) that ships inside the extension. Nothing
-            is downloaded to do this, and the image is not sent anywhere.</li>
-        <li>That text is then read by Chrome's built-in AI (the Prompt API, running Gemini Nano). The model runs on
-            your device, and Chrome does not send the text anywhere to answer.</li>
-        <li>What was read is compared against the raids on your Dawnhub page, also on your device.</li>
-        <li>The pasted content is kept in memory only while the window is open, and is discarded when you close it.
-            It is not saved to disk by the extension.</li>
-        <li>To help you check a result, the extension writes the text it read and what it found to your browser's
-            developer console for that page. That output stays in your browser and is cleared when the page is
-            closed or reloaded.</li>
-    </ul>
-
-    <h3>What you enter into Dawnhub's forms</h3>
-    <p>Where a tool fills something in for you, such as the raid, Name-Realm, Pot and curve boss for a booking, it
-        fills it into Dawnhub's own form on your page and may click Dawnhub's own buttons, such as its character search. The
-        extension never submits a form. Information is only sent to Dawnhub when you submit Dawnhub's form yourself.</p>
-
     <h2>How information is shared</h2>
     <h3>Dawnhub</h3>
-    <p>The extension sends read requests to Dawnhub to load the data described above. Beyond that, Dawnhub only
-        receives what you submit through its own forms, and anything its own buttons send when the extension clicks
-        them for you.</p>
-    <h3>Google Chrome</h3>
-    <p>Tools that use Chrome's built-in AI rely on a model Chrome downloads once, the first time it is needed. That
-        download is handled by Chrome itself under <a href="https://policies.google.com/privacy">Google's privacy
-        policy</a>. The model processes prompts on your device. The extension does not use any Google service over
-        the network.</p>
+    <p>The extension sends read requests to Dawnhub to load raids and bookings for its tools.</p>
     <h3>No one else</h3>
     <p>The extension does not send any information to its author, to this website, or to any other third party.</p>
 
@@ -92,25 +61,12 @@
             start), so <em>Late starts</em> can tell how late that leader's next raid will likely be. Entries are
             removed once they are a day old.</li>
     </ul>
-    <p>In the extension's session storage, which the browser keeps in memory only and clears when it closes:</p>
-    <ul>
-        <li><strong>The booking fields you confirm</strong> (raid, Name-Realm, Pot and curve boss), for a moment when
-            you choose <em>Open &amp; fill</em>, so they can be filled in once the new tab's booking page loads. They
-            are removed as soon as that tab has used them, or when it is closed.</li>
-    </ul>
-    <p>In the Dawnhub tab's session storage, cleared when the tab is closed:</p>
-    <ul>
-        <li><strong>The address of the raids list you last viewed</strong> (its dates, raid type and region), so
-            <em>Fill booking from a DM</em> can offer those raids on a raid's own page.</li>
-    </ul>
-    <p>The Dawnhub tab's session storage belongs to the Dawnhub website, which means Dawnhub's own pages can
-        technically read it. You can remove everything the extension stores by uninstalling it.</p>
 
     <h2>Permissions</h2>
     <ul>
         <li><strong>Access to hub.dawn-boosting.com</strong> (and Dawn's devhub test site): to add the extension's
-            tools to Dawnhub pages, read the data described above, and fill in Dawnhub's forms.</li>
-        <li><strong>Storage</strong>: to remember your settings.</li>
+            tools to Dawnhub pages and read the data described above.</li>
+        <li><strong>Storage</strong>: to remember the slots filter and recent raid locks.</li>
     </ul>
 
     <h2>This website</h2>

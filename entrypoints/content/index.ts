@@ -1,8 +1,6 @@
 import {defineContentScript} from "#imports";
 import {restoreOpenSlotsFilter} from "@/components/ui/open-slots-filter";
 import {BASE_URLS} from "@/utils/constants";
-import {mountBookingFormIntegration} from "@/entrypoints/content/integrations/booking-form";
-import {mountPasteTrigger} from "@/entrypoints/content/integrations/paste-trigger";
 import {mountRaidsTableIntegration} from "@/entrypoints/content/integrations/raids-table";
 import {mountToolbarIntegration} from "@/entrypoints/content/integrations/toolbar";
 
@@ -16,9 +14,7 @@ export default defineContentScript({
         const raidsTable = mountRaidsTableIntegration(ctx)
         const integrations = [
             raidsTable,
-            mountToolbarIntegration(ctx, raidsTable),
-            mountBookingFormIntegration(ctx),
-            mountPasteTrigger(ctx)
+            mountToolbarIntegration(ctx, raidsTable)
         ]
 
         const stopAll = () => {

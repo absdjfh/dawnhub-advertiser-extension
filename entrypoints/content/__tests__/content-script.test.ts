@@ -3,15 +3,6 @@ import {ContentScriptContext, fakeBrowser} from "#imports";
 import type {RaidData} from "@/components/api/dawn-api";
 import {openSlotsFilterStore} from "@/components/ui/open-slots-filter";
 import {raidLocksStore} from "@/utils/raid-delays";
-import {closeBookingIntentPanel} from "@/components/ui/booking-intent-panel";
-import {takePendingBookingFor} from "@/components/booking-intent/pending-booking";
-
-// The background script's half of the handoff is tested on its own (pending-booking.test.ts); here the booking
-// page just asks it for the fields its tab was opened with.
-vi.mock("@/components/booking-intent/pending-booking", () => ({
-    takePendingBookingFor: vi.fn(() => Promise.resolve(null)),
-    openBookingInNewTab: vi.fn()
-}))
 import contentScript from "@/entrypoints/content/index";
 import raidsTableHtml from "@/host/__tests__/fixtures/dawnhub-raids-table.html?raw"
 
@@ -82,8 +73,8 @@ function respondWithRaids(list: RaidData[]) {
         : {ok: false, status: 404})))
 }
 
-function fillButton() {
-    return document.querySelector<HTMLButtonElement>(".dat-fill-button")
+function buyerSearchButton() {
+    return document.querySelector<HTMLButtonElement>(".dat-toolbar .dat-secondary-button")
 }
 
 function openSlotsTick() {
@@ -101,23 +92,19 @@ describe("Content script on Dawnhub's raids list", () => {
 
     afterEach(() => {
         ctx.notifyInvalidated()
-        closeBookingIntentPanel()
         vi.useRealTimers()
         vi.unstubAllGlobals()
-        sessionStorage.clear()
         document.body.replaceChildren()
     })
 
-    it("should add the fill booking button and the buyer search to Dawnhub's toolbar", async () => {
+    it("should add the buyer search to Dawnhub's toolbar", async () => {
         await startContentScript()
 
-        await vi.waitFor(() => expect(fillButton()).not.toBeNull())
-        expect(fillButton()!.textContent).toBe("Fill booking from DMCtrl V")
-        expect(fillButton()!.getAttribute("aria-keyshortcuts")).toBe("Control+V")
-        expect(document.querySelector("div[role='toolbar'] .dat-secondary-button")?.textContent).toBe("Find a buyer")
+        await vi.waitFor(() => expect(buyerSearchButton()?.textContent).toBe("Find a buyer"))
+        expect(document.querySelector(".dat-toolbar")!.textContent).not.toContain("Fill booking")
     })
 
-    it("should reload the list Dawnhub loaded, link each raid's time to its page, and remember the list for the tab", async () => {
+    it("should reload the list Dawnhub loaded and link each raid's time to its page", async () => {
         await startContentScript()
 
         FakePerformanceObserver.latest!.deliver(LIST_URL)
@@ -125,7 +112,6 @@ describe("Content script on Dawnhub's raids list", () => {
         await vi.waitFor(() => expect(raidLinks()).toHaveLength(5))
         expect(fetch).toHaveBeenCalledWith(`${LIST_URL}&ext`)
         expect(raidLinks()[2]).toBe("https://hub.dawn-boosting.com/bookings/raids/r2")
-        expect(sessionStorage.getItem("dawnhubAdvertiserTools:raidsListRequest")).toBe(LIST_URL)
     })
 
     it("should mark a raid's likely start when its leader's raid before it locked late", async () => {
@@ -189,36 +175,42 @@ describe("Content script on Dawnhub's raids list", () => {
         expect(openSlotsTick()!.checked).toBe(true)
     })
 
-    it("should open the fill booking panel for a screenshot pasted anywhere on the page", async () => {
+    it.each(["/bookings/raids", "/bookings/raids/r2"])("should leave screenshot and text pastes to Dawnhub on %s", async path => {
+        history.replaceState(null, "", path)
+        const isBookingPage = path.endsWith("/r2")
+        if (isBookingPage) {
+            document.body.innerHTML = '<div role="toolbar"><div></div></div><form><input id="nameRealm"><input id="pot"></form>'
+        }
         await startContentScript()
-        FakePerformanceObserver.latest!.deliver(LIST_URL)
-        await vi.waitFor(() => expect(raidLinks()).toHaveLength(5))
+        if (!isBookingPage) {
+            FakePerformanceObserver.latest!.deliver(LIST_URL)
+            await vi.waitFor(() => expect(raidLinks()).toHaveLength(5))
+        }
 
-        const clipboardData = new DataTransfer()
-        clipboardData.items.add(new File(["png"], "dm.png", {type: "image/png"}))
-        const paste = new ClipboardEvent("paste", {clipboardData, bubbles: true, cancelable: true})
-        document.body.dispatchEvent(paste)
+        const input = document.querySelector<HTMLInputElement>(isBookingPage ? "#nameRealm" : "#start-date")!
+        const initialValue = input.value
+        const screenshot = new DataTransfer()
+        screenshot.items.add(new File(["png"], "dm.png", {type: "image/png"}))
+        const message = new DataTransfer()
+        message.setData("text/plain", "Bob-Kazzak for the 11:00 raid")
+        for (const [target, clipboardData] of [[document.body, screenshot], [input, message]] as const) {
+            const paste = new ClipboardEvent("paste", {clipboardData, bubbles: true, cancelable: true})
+            target.dispatchEvent(paste)
+            expect(paste.defaultPrevented).toBe(false)
+        }
 
-        await vi.waitFor(() => expect(document.querySelector(".dat-dialog")).not.toBeNull())
-        expect(paste.defaultPrevented).toBe(true)
-    })
-
-    it("should leave a text paste to whatever it was pasted into", async () => {
-        await startContentScript()
-
-        const clipboardData = new DataTransfer()
-        clipboardData.setData("text/plain", "Undermine")
-        const paste = new ClipboardEvent("paste", {clipboardData, bubbles: true, cancelable: true})
-        document.body.dispatchEvent(paste)
-        await new Promise(resolve => setTimeout(resolve, 20))
-
-        expect(paste.defaultPrevented).toBe(false)
-        expect(document.querySelector(".dat-dialog")).toBeNull()
+        expect(input.value).toBe(initialValue)
+        expect(location.pathname).toBe(path)
+        expect(document.querySelector("[role=dialog]")).toBeNull()
+        if (isBookingPage) {
+            expect(document.querySelector(".dat-toolbar")).toBeNull()
+            expect(document.querySelector<HTMLInputElement>("#pot")!.value).toBe("")
+        }
     })
 
     it("should take its toolbar off for good once the extension is reloaded or updated", async () => {
         await startContentScript()
-        await vi.waitFor(() => expect(fillButton()).not.toBeNull())
+        await vi.waitFor(() => expect(buyerSearchButton()).not.toBeNull())
 
         ctx.notifyInvalidated()
         // Dawnhub re-rendering its toolbar slot must not bring back a toolbar from the old script.
@@ -226,40 +218,19 @@ describe("Content script on Dawnhub's raids list", () => {
         toolbarSlot.replaceWith(document.createElement("div"))
         await new Promise(resolve => setTimeout(resolve, 50))
 
-        expect(fillButton()).toBeNull()
-    })
-
-    it("should fill the booking the panel left for the raid it opened, and search for the character", async () => {
-        history.replaceState(null, "", "/bookings/raids/r2")
-        vi.mocked(takePendingBookingFor).mockImplementation(raidId => Promise.resolve(raidId === "r2" ? {raidId: "r2", nameRealm: "Bob-Kazzak", price: "250", curveBoss: ""} : null))
-        document.body.innerHTML = `
-            <div role="toolbar"><div></div></div>
-            <form><input id="nameRealm"><button type="button" aria-label="search">search</button><input id="pot"><input id="privateNote"></form>`
-        const searched = vi.fn()
-        document.querySelector("button[aria-label='search']")!.addEventListener("click", searched)
-
-        await startContentScript()
-
-        await vi.waitFor(() => expect(searched).toHaveBeenCalledOnce())
-        expect(document.querySelector<HTMLInputElement>("#nameRealm")!.value).toBe("Bob-Kazzak")
-        expect(document.querySelector<HTMLInputElement>("#pot")!.value).toBe("250")
-        expect(document.querySelector<HTMLInputElement>("#privateNote")!.value).toBe("")
-        expect(document.body.textContent).toContain("Booking filled in - check it over, then submit it.")
-        // The raid's own page gets the fill button too, but no raids-list tick.
-        expect(fillButton()).not.toBeNull()
-        expect(openSlotsTick()).toBeNull()
+        expect(buyerSearchButton()).toBeNull()
     })
 
     it("should not bring its toolbar back when Dawnhub navigates after the extension was updated", async () => {
         await startContentScript()
-        await vi.waitFor(() => expect(fillButton()).not.toBeNull())
+        await vi.waitFor(() => expect(buyerSearchButton()).not.toBeNull())
         ctx.notifyInvalidated()
-        await vi.waitFor(() => expect(fillButton()).toBeNull())
+        await vi.waitFor(() => expect(buyerSearchButton()).toBeNull())
 
         // Dawnhub navigating within the page; WXT notices within a second, then the toolbar remount waits 500ms.
         history.pushState(null, "", "/bookings/raids?type=curve")
         await new Promise(resolve => setTimeout(resolve, 1800))
 
-        expect(fillButton()).toBeNull()
+        expect(buyerSearchButton()).toBeNull()
     })
 })

@@ -4,7 +4,6 @@ export const dawnhubSelectors = {
     grid: "table[role='grid']",
     gridRows: "table[role='grid'] > tbody > tr",
     gridHeaders: "table[role='grid'] th",
-    bookingForm: "form",
     nextData: "script[id='__NEXT_DATA__']"
 } as const
 
@@ -33,16 +32,6 @@ export function isRaidsView() {
     return /bookings\/(raids|curves)(?!\/)/.test(window.location.toString())
 }
 
-/** One raid's own page, with its bookings and the form to add one. */
-export function isBookingView() {
-    return window.location.toString().includes("/bookings/raids/")
-}
-
-export function getCurrentRaidIdFromUrl(): string | null {
-    if (!isBookingView()) return null
-    return window.location.pathname.split("/").filter(Boolean).slice(-1)[0] ?? null
-}
-
 export function getBookingPageUrl(baseUrl: string, raidId: string) {
     return `${baseUrl}/bookings/raids/${raidId}`
 }
@@ -57,16 +46,6 @@ export function getDawnhubGridRows() {
 
 export function getDawnhubGridColumnHeaders() {
     return document.querySelectorAll<HTMLTableCellElement>(dawnhubSelectors.gridHeaders)
-}
-
-/**
- * Dawnhub can render more than one form on a raid's page (e.g. a raid-announcement form alongside the
- * booking form), so this looks for the one that actually has the individual-booking fields, identified
- * by a field unique to that form, rather than assuming the first form on the page is it.
- */
-export function getDawnhubForm() {
-    return Array.from(document.querySelectorAll<HTMLFormElement>(dawnhubSelectors.bookingForm))
-        .find(form => form.querySelector("input[id='pot']")) ?? null
 }
 
 /** Reads one of Dawnhub's labelled inputs, e.g. the raids list's "Start Date" filter. */

@@ -1,8 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {
-    getRememberedRaidsListRequest,
     isDawnhubRaidsListRequest,
-    rememberRaidsListRequest,
     watchDawnhubRaidsListRequests
 } from "@/host/dawnhub-raids-request";
 
@@ -102,27 +100,5 @@ describe("watchDawnhubRaidsListRequests", () => {
         stop()
 
         expect(FakePerformanceObserver.instances[0]!.disconnected).toBe(true)
-    })
-})
-
-describe("remembering the raids list for the tab", () => {
-    afterEach(() => {
-        sessionStorage.clear()
-    })
-
-    it("hands back the list last remembered", () => {
-        rememberRaidsListRequest(LIST_URL)
-
-        expect(getRememberedRaidsListRequest()).toBe(LIST_URL)
-    })
-
-    it("has nothing to hand back before a list was ever loaded in the tab", () => {
-        expect(getRememberedRaidsListRequest()).toBeNull()
-    })
-
-    it("never hands back anything but a Dawnhub raids list, whatever ended up under its key", () => {
-        sessionStorage.setItem("dawnhubAdvertiserTools:raidsListRequest", "https://example.com/api/raids?type=raid")
-
-        expect(getRememberedRaidsListRequest()).toBeNull()
     })
 })
