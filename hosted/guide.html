@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="How to use Dawnhub Advertiser Tools: installing it, and how each of its tools for Dawnhub advertisers works.">
+    <link rel="canonical" href="https://dawn-adv-tools.rolich.net/guide.html">
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="stylesheet" href="index.css">
+    <title>Dawnhub Advertiser Tools User Guide</title>
+</head>
+<body>
+<div class="site">
+    <header class="topbar">
+        <a class="brand" href="index.html"><img src="icon.svg" alt=""><span>Dawnhub Advertiser Tools</span></a>
+        <nav aria-label="Site navigation">
+            <a href="index.html">Home</a>
+            <a href="downloads.html">Downloads</a>
+            <a class="active" href="guide.html">User guide</a>
+            <a href="privacy.html">Privacy policy</a>
+        </nav>
+    </header>
+    <main class="content guide-content">
+        <section class="intro">
+            <h1>User guide</h1>
+            <p>How to install Dawnhub Advertiser Tools, where its tools appear on Dawnhub, and how each of them works.</p>
+        </section>
+
+        <div class="guide-layout">
+            <nav class="guide-toc" aria-label="Guide contents">
+                <h2>Contents</h2>
+                <ol>
+                    <li><a href="#getting-started">Getting started</a>
+                        <ol>
+                            <li><a href="#where-things-appear">Where things appear</a></li>
+                        </ol>
+                    </li>
+                    <li><a href="#find-a-buyer">Find a buyer</a></li>
+                    <li><a href="#slots-available">Raids with slots available</a></li>
+                    <li><a href="#raid-links">Raid time links</a></li>
+                    <li><a href="#late-starts">Late starts</a></li>
+                    <li><a href="#troubleshooting">General troubleshooting</a></li>
+                    <li><a href="#privacy">Privacy in short</a></li>
+                </ol>
+            </nav>
+
+            <div>
+                <section id="getting-started" class="panel guide-section" aria-labelledby="getting-started-heading">
+                    <h2 id="getting-started-heading">1. Getting started</h2>
+                    <p>You need <strong>Google Chrome on a computer</strong> and a <strong>Dawnhub account</strong> that you already use to book buyers.</p>
+                    <ol>
+                        <li>Open the <a href="downloads.html">downloads page</a> and choose <strong>Chrome Web Store</strong>, then <strong>Add to Chrome</strong>.</li>
+                        <li>Chrome asks to let the extension read and change your data on <code>hub.dawn-boosting.com</code>, and on Dawn's <code>devhub</code> test site. That's how it adds its tools to Dawnhub's pages, and those are the only sites it runs on.</li>
+                        <li>Reload any Dawnhub tab you already had open.</li>
+                    </ol>
+                    <h3 id="where-things-appear">Where things appear</h3>
+                    <p>The tools appear directly on Dawnhub's <a href="https://hub.dawn-boosting.com/bookings/raids?type=raid">raids list</a>:</p>
+                    <div class="guide-map">
+                        <a class="guide-map-item" href="#find-a-buyer"><b>Find a buyer</b>See which raids a character is booked into.</a>
+                        <a class="guide-map-item" href="#slots-available"><b>Show only raids with slots available</b>Hide every raid that's already full.</a>
+                        <a class="guide-map-item" href="#raid-links"><b>A raid's time</b>Middle-click it to open the raid in a new tab.</a>
+                        <a class="guide-map-item" href="#late-starts"><b>Late starts</b>Shows a raid's likely start when the leader's raid before it runs late.</a>
+                    </div>
+                    <p class="guide-after-map">Click the extension's icon in Chrome's toolbar for links to each tool in this guide.</p>
+                    <p>On macOS, use <kbd>⌘</kbd> wherever this guide says <kbd>Ctrl</kbd>.</p>
+                </section>
+
+                <section id="find-a-buyer" class="panel guide-section" aria-labelledby="find-a-buyer-heading">
+                    <h2 id="find-a-buyer-heading">2. Find a buyer</h2>
+                    <p>On the raids list, <strong>Find a buyer</strong> searches every raid in the dates set in Dawnhub's Start Date and End Date filters, on the region and list you're viewing, for a character. Type part of their name-realm to see which raids they're booked into, with their class, the advertiser who booked them, pot, deposit, paid status and source. Each result links to its raid in a new tab, <strong>Refresh</strong> reloads the bookings, and <strong>Close</strong> or <kbd>Esc</kbd> closes the search. What you see depends on which bookings Dawnhub shows your account.</p>
+                </section>
+
+                <section id="slots-available" class="panel guide-section" aria-labelledby="slots-available-heading">
+                    <h2 id="slots-available-heading">3. Raids with slots available</h2>
+                    <p>A <strong>Show only raids with slots available</strong> tick above Dawnhub's own VIP armor filter hides every raid that's already full, VIP, curve and regular alike. Dawnhub's own filter only covers VIP raids. The tick works alongside Dawnhub's filters and is remembered between visits. On the curve list, which has no VIP filter, it sits next to Find a buyer instead.</p>
+                    <figure class="guide-shot">
+                        <a href="guide/slots-filter.webp"><img src="guide/slots-filter.webp" width="339" height="148" loading="lazy" decoding="async" alt="The Show only raids with slots available tick, ticked and highlighted, above Dawnhub's Show only VIP raids with slots available for: Cloth, Leather, Mail and Plate buttons."></a>
+                    </figure>
+                </section>
+
+                <section id="raid-links" class="panel guide-section" aria-labelledby="raid-links-heading">
+                    <h2 id="raid-links-heading">4. Raid time links</h2>
+                    <p>Each raid's time on the raids list is a real link. Middle-click it or <kbd>Ctrl</kbd>+click it to open the raid in a new tab, or click it as normal to open it in place.</p>
+                    <figure class="guide-shot">
+                        <a href="guide/raid-links.webp"><img src="guide/raid-links.webp" width="354" height="294" loading="lazy" decoding="async" alt="Four rows of the raids list's Date, Time and Raid columns, with the times in blue and the hovered 10:00 underlined and highlighted."></a>
+                        <figcaption>A raid's time with the mouse over it.</figcaption>
+                    </figure>
+                </section>
+
+                <section id="late-starts" class="panel guide-section" aria-labelledby="late-starts-heading">
+                    <h2 id="late-starts-heading">5. Late starts</h2>
+                    <p>Leaders run back to back, so when a leader's raid starts late, their next one usually does too. When the leader's raid before, up to 3 hours earlier, is still open past its start or locked late, a small orange time such as <strong>~19:18</strong> under a raid's start time shows when it will likely start. Hover over it to see why, for example <em>18:30 run locked 18 min late</em> or <em>18:30 run still open 12 min after start</em>. Less than 3 minutes late counts as on time, and more than 90 minutes as a raid left open by mistake.</p>
+                    <figure class="guide-shot">
+                        <a href="guide/late-start.webp"><img src="guide/late-start.webp" width="354" height="169" loading="lazy" decoding="async" alt="A 10:00 raid with ~10:21 in orange under its start time, highlighted, and the hover text: 08:30 run locked 21 min late."></a>
+                        <figcaption>The likely start, and why when you hover over it.</figcaption>
+                    </figure>
+                    <p>The extension times a lock from Dawnhub's own refreshes of the raids list, every 30 seconds while a raids list is the tab in front, so it only knows the raids that locked while one was. Locks are remembered for a day, and shared between your Dawnhub tabs, so a leader's earlier raid counts even when it was listed on another list.</p>
+                </section>
+
+                <section id="troubleshooting" class="panel guide-section faq" aria-labelledby="troubleshooting-heading">
+                    <h2 id="troubleshooting-heading">6. General troubleshooting</h2>
+                    <details>
+                        <summary>The buyer search or slots tick is missing</summary>
+                        <div><p>Reload the page after installing or updating the extension. Look for Find a buyer above the table on the raids list.</p></div>
+                    </details>
+                    <details>
+                        <summary>Something stopped working after Dawnhub changed</summary>
+                        <div><p>The extension works with Dawnhub's pages as they are, so a redesign on Dawnhub's side can break a tool until the extension is updated. Chrome Web Store installs update automatically once a fix is out.</p></div>
+                    </details>
+                </section>
+
+                <section id="privacy" class="panel guide-section" aria-labelledby="privacy-heading">
+                    <h2 id="privacy-heading">7. Privacy in short</h2>
+                    <p>The extension works with the Dawnhub data your account can already see, and talks only to Dawnhub itself. There are no analytics and no servers of its own. Details are in the <a href="privacy.html">privacy policy</a>.</p>
+                </section>
+            </div>
+        </div>
+    </main>
+    <footer class="site-footer">
+        <a class="github-link" href="https://github.com/absdjfh/dawnhub-advertiser-extension"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Source code on GitHub</a>
+    </footer>
+</div>
+</body>
+</html>
