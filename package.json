@@ -2,7 +2,7 @@
   "name": "dawnhub-advertiser-extension",
   "description": "Tools for Dawnhub advertisers on the Dawnhub raids list.",
   "private": true,
-  "version": "26.10.1",
+  "version": "26.11.1",
   "type": "module",
   "scripts": {
     "dev": "wxt",
